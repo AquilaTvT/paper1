@@ -169,3 +169,37 @@ cd frontend-vue
 npm install
 npm run build
 ```
+
+## 后端本地启动
+
+第 2 阶段已创建 `backend-java/`，使用 Java 17、Spring Boot 3.x 和 Maven 实现 in-memory mock mode 后端服务。当前后端不依赖 Redis、数据库或 Python 推理服务即可运行完整 mock 任务流转。
+
+启动与构建：
+
+```bash
+cd backend-java
+mvn spring-boot:run
+mvn package
+```
+
+核心接口：
+
+- `GET /api/health`：服务健康检查。
+- `POST /api/videos/upload`：上传视频，支持 `mp4`、`mov`、`avi`、`mkv`。
+- `POST /api/tasks`：基于 `videoId` 和 `queryText` 创建摘要任务。
+- `GET /api/tasks`：查询任务列表。
+- `GET /api/tasks/{taskId}`：查询任务详情、日志和 Token 指标。
+- `GET /api/tasks/{taskId}/events`：订阅 SSE 任务事件。
+- `GET /api/results/{taskId}`：查询最终摘要和测试指标。
+
+与 `frontend-vue` 联调：
+
+1. 启动后端：`cd backend-java && mvn spring-boot:run`。
+2. 启动前端：`cd frontend-vue && npm run dev`。
+3. Vite 已将 `/api` 代理到 `http://localhost:8080`，后续可将前端 mock API 切换为真实 `taskApi.ts` 和 `sseClient.ts`。
+
+当前说明：
+
+- 后端默认是 in-memory mock mode，上传文件元数据、任务、日志和结果保存在内存中。
+- `MockInferenceScheduler` 暂不调用 Python 服务，会自动模拟 `waiting → running → streaming → finished`。
+- 下一阶段再接入 Redis 队列、Python FastAPI 推理服务以及可选 H2/JPA 持久化。
