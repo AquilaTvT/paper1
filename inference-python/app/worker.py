@@ -46,12 +46,16 @@ class InferenceWorker:
         task_id = fields["taskId"]
         try:
             self.redis_client.hset(f"task:{task_id}", mapping={"status": "running", "currentStage": "python_worker", "updatedAt": fields.get("createdAt", "")})
+            self.redis_client.xadd(
+                f"stream:task:{task_id}",
+                {"taskId": task_id, "eventType": "status", "stage": "python_worker", "status": "running", "payload": json.dumps({"status": "running", "progress": 5}, ensure_ascii=False)},
+            )
             self.pipeline.run(task_id, fields.get("videoPath", "mock://redis-task.mp4"), fields.get("queryText", "请总结视频"))
             self.redis_client.hset(f"task:{task_id}", mapping={"status": "finished", "currentStage": "finished", "progress": "100"})
         except Exception as exc:
             payload = {"message": str(exc)}
             self.redis_client.hset(f"task:{task_id}", mapping={"status": "failed", "currentStage": "python_worker", "errorMessage": str(exc)})
-            self.redis_client.xadd(f"stream:task:{task_id}", {"eventType": "error", "stage": "python_worker", "payload": json.dumps(payload, ensure_ascii=False)})
+            self.redis_client.xadd(f"stream:task:{task_id}", {"taskId": task_id, "eventType": "error", "stage": "python_worker", "error": str(exc), "payload": json.dumps(payload, ensure_ascii=False)})
 
 
 if __name__ == "__main__":

@@ -84,3 +84,7 @@ pytest
 2. Python worker 消费任务并调用 `InferencePipeline`。
 3. `StreamPublisher` 从内存事件列表替换为 Redis Stream 发布。
 4. Java 后端读取 Redis 事件并通过 SSE 转发给前端。
+
+### Redis 事件字段兼容说明
+
+为避免合并 main 与第 4 阶段代码时出现字段不一致，当前 Redis/SSE 链路统一保留 `taskId`、`status`、`stage`、`tokenMetrics`、`summaryDelta`、`completed`、`error` 这些语义字段；Redis Stream 事件名仍使用 `token_metrics` 和 `summary_delta`，Java SSE 层与 Vue 前端同时兼容 snake_case 事件名和 camelCase payload 字段。

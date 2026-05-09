@@ -52,6 +52,18 @@ public class RedisStreamSseService {
                     String eventType = String.valueOf(value.getOrDefault("eventType", "stage"));
                     String stage = String.valueOf(value.getOrDefault("stage", eventType));
                     Object payload = parsePayload(String.valueOf(value.getOrDefault("payload", "{}")));
+                    if ("summary_delta".equals(eventType) && value.get("summaryDelta") != null) {
+                        payload = Map.of("summaryDelta", value.get("summaryDelta"), "text", value.get("summaryDelta"));
+                    }
+                    if ("token_metrics".equals(eventType) && value.get("tokenMetrics") != null) {
+                        payload = parsePayload(String.valueOf(value.get("tokenMetrics")));
+                    }
+                    if ("status".equals(eventType) && value.get("status") != null) {
+                        payload = Map.of("status", value.get("status"));
+                    }
+                    if ("error".equals(eventType) && value.get("error") != null) {
+                        payload = Map.of("error", value.get("error"), "message", value.get("error"));
+                    }
                     emitter.send(SseEmitter.event().name(eventType).data(StreamEvent.of(taskId, eventType, stage, payload)));
                     if ("completed".equals(eventType) || "error".equals(eventType)) {
                         emitter.complete();

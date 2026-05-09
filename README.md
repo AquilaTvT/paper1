@@ -256,3 +256,7 @@ Redis 数据结构：
 - `APP_MODE=redis`：Java 后端只负责上传、创建任务、写入 Redis 队列和转发 Redis Stream SSE。
 - `VITE_APP_MODE=mock`：前端继续使用浏览器 mock 流程。
 - `VITE_APP_MODE=backend`：前端调用 Java 后端真实接口并通过 SSE 接收 Redis worker 事件。
+
+### Redis 事件字段兼容说明
+
+为避免合并 main 与第 4 阶段代码时出现字段不一致，当前 Redis/SSE 链路统一保留 `taskId`、`status`、`stage`、`tokenMetrics`、`summaryDelta`、`completed`、`error` 这些语义字段；Redis Stream 事件名仍使用 `token_metrics` 和 `summary_delta`，Java SSE 层与 Vue 前端同时兼容 snake_case 事件名和 camelCase payload 字段。

@@ -44,10 +44,30 @@ export function useBackendInferenceTask(onFinished: (task: InferenceTask) => voi
       currentTask.value = { ...currentTask.value, currentStage: mapStage(String(event.stage || payload.stage || 'video_sampling')), updatedAt: now };
     }
     if (eventName === 'token_metrics') {
-      currentTask.value = { ...currentTask.value, tokenMetrics: createTokenMetrics(currentTask.value.video.durationSeconds), updatedAt: now };
+      const raw = Number(payload.raw_patch_tokens_per_frame || payload.rawPatchTokensPerFrame || 196);
+      const compressed = Number(payload.compressed_tokens_per_frame || payload.compressedTokensPerFrame || 5);
+      const frames = Number(payload.sampled_frames || payload.sampledFrames || Math.max(1, currentTask.value.video.durationSeconds));
+      currentTask.value = {
+        ...currentTask.value,
+        tokenMetrics: {
+          rawPatchTokensPerFrame: raw,
+          compressedTokensPerFrame: compressed,
+          contentTokensPerFrame: 1,
+          contextTokensPerFrame: 4,
+          frameSampleRate: 1,
+          durationSeconds: currentTask.value.video.durationSeconds,
+          sampledFrames: frames,
+          rawTotalTokens: Number(payload.raw_visual_tokens || payload.rawVisualTokens || raw * frames),
+          compressedTotalTokens: Number(payload.compressed_visual_tokens || payload.compressedVisualTokens || compressed * frames),
+          compressionRatio: Number(payload.compression_ratio || payload.compressionRatio || raw / compressed),
+          compressionText: `${raw} → ${compressed}`,
+          estimatedReductionPercent: (1 - compressed / raw) * 100,
+        },
+        updatedAt: now,
+      };
     }
     if (eventName === 'summary_delta') {
-      const text = String(payload.text || '');
+      const text = String(payload.text || payload.summaryDelta || '');
       currentTask.value = { ...currentTask.value, status: 'streaming', streamChunks: [...currentTask.value.streamChunks, { id: crypto.randomUUID(), text, createdAt: now }], updatedAt: now };
     }
     if (eventName === 'completed') {
@@ -57,7 +77,7 @@ export function useBackendInferenceTask(onFinished: (task: InferenceTask) => voi
       onFinished(currentTask.value);
     }
     if (eventName === 'error') {
-      errorMessage.value = String(payload.message || '后端推理失败');
+      errorMessage.value = String(payload.message || payload.error || '后端推理失败');
       currentTask.value = { ...currentTask.value, status: 'failed', errorMessage: errorMessage.value, updatedAt: now };
       isStreaming.value = false;
     }

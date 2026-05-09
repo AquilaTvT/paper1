@@ -387,3 +387,17 @@ cd inference-python && MMVS_REDIS_ENABLED=true python -m app.worker
 cd backend-java && APP_MODE=redis mvn spring-boot:run
 cd frontend-vue && VITE_APP_MODE=backend npm run dev
 ```
+
+### 字段命名合并约定
+
+为解决前后端与 Redis worker 的字段命名差异，第 4 阶段统一对外保留以下语义字段：
+
+- `taskId`：任务 ID。
+- `status`：任务状态。
+- `stage`：当前推理阶段。
+- `tokenMetrics`：Token 指标对象；Redis Stream 中同时允许 `token_metrics` 事件名。
+- `summaryDelta`：摘要增量文本；Redis Stream 中同时允许 `summary_delta` 事件名。
+- `completed`：任务完成标记，对应 `completed` 事件。
+- `error`：错误信息，对应 `error` 事件。
+
+Java SSE 转发层需要兼容 Redis Stream 中的 snake_case 事件名和 camelCase payload 字段，Vue 前端也需要同时兼容 `summary_delta` / `summaryDelta` 与 `token_metrics` / `tokenMetrics`。
