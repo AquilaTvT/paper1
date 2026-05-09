@@ -139,3 +139,33 @@ waiting → running → streaming → finished
 - 可以看到 Token 压缩指标 `196 → 5`。
 - 可以看到历史任务和测试结果。
 - 可以用于论文截图和第六章代码说明。
+
+## 前端本地启动
+
+第 1 阶段已创建 `frontend-vue/`，用于演示 Vue 3 + Vite + TypeScript 的 mock 前端闭环。启动步骤：
+
+```bash
+cd frontend-vue
+npm install
+npm run dev
+npm run build
+```
+
+说明：
+
+- `npm run dev` 启动 Vite 开发服务器，默认端口为 `5173`。
+- `npm run build` 执行 TypeScript 类型检查并生成生产构建。
+- 当前前端默认使用 mock mode，不依赖 Java 后端、Python 推理服务、Redis、GPU 或真实模型权重。
+- API 层已经预留 `taskApi.ts` 和 `sseClient.ts`，后续可对接 Java Spring Boot 的 REST/SSE 接口。
+
+## Testing
+
+当前 Codex 云环境在访问 npm registry 时，对 `@vitejs/plugin-vue` 返回 `403 Forbidden`，因此云端未能完成依赖安装，`npm run build` 也因 `vue-tsc` 未安装而无法真正执行完成。本次已通过静态方式检查 `package.json` 精确版本、前端文件结构、相对 import 路径和 mock 流程关键字段。
+
+本地最终验证请运行：
+
+```bash
+cd frontend-vue
+npm install
+npm run build
+```
