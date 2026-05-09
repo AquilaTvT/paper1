@@ -203,3 +203,29 @@ mvn package
 - 后端默认是 in-memory mock mode，上传文件元数据、任务、日志和结果保存在内存中。
 - `MockInferenceScheduler` 暂不调用 Python 服务，会自动模拟 `waiting → running → streaming → finished`。
 - 下一阶段再接入 Redis 队列、Python FastAPI 推理服务以及可选 H2/JPA 持久化。
+
+## 推理服务本地启动
+
+第 3 阶段已创建 `inference-python/`，使用 Python 3.10+、FastAPI 和 NumPy 实现 mock-first 推理链路。默认 mock mode 不依赖 GPU、真实大模型或真实 Video Swin 权重。
+
+启动与测试：
+
+```bash
+cd inference-python
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m compileall app
+pytest
+```
+
+核心接口：
+
+- `GET /health`：推理服务健康检查。
+- `POST /infer`：输入 `video_path`、`query_text`、`task_id`，返回完整推理结果。
+- `POST /mock-infer`：直接运行 mock 推理流程，便于本地测试。
+
+当前说明：
+
+- `InferencePipeline` 串联视频预处理、Video Swin mock 编码、双轨 Token 压缩、MLP Projection Adapter 和中文摘要生成。
+- `DualTrackTokenCompressor` 保证单帧 `196` 个 Patch Token 压缩为 `5` 个视觉 Token。
+- `worker.py` 和 `StreamPublisher` 已预留 Redis 队列与流式事件发布边界，下一阶段与 Java 后端和 Redis 接入。
