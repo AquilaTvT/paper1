@@ -8,6 +8,11 @@ spring:
     multipart:
       max-file-size: 200MB
       max-request-size: 220MB
+  data:
+    redis:
+      host: ${MMVS_REDIS_HOST:localhost}
+      port: ${MMVS_REDIS_PORT:6379}
+      database: ${MMVS_REDIS_DATABASE:0}
 
 mmvs:
   storage:
@@ -15,11 +20,13 @@ mmvs:
     max-file-size-bytes: 209715200
     allowed-extensions: mp4,mov,avi,mkv
   inference:
-    mode: in-memory
+    mode: ${MMVS_INFERENCE_MODE:in-memory}
     mock-stage-delay-ms: 700
     mock-summary-delay-ms: 650
     frame-sample-rate: 1
     raw-patch-tokens-per-frame: 196
     compressed-tokens-per-frame: 5
-    redis-enabled: false
+    redis-enabled: ${MMVS_REDIS_ENABLED:false}
+    redis-task-stream: ${MMVS_REDIS_TASK_STREAM:mmvs:tasks:requests}
+    redis-event-stream: ${MMVS_REDIS_EVENT_STREAM:mmvs:tasks:events}
     h2-jpa-enabled: false

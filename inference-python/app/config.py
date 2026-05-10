@@ -14,6 +14,8 @@ class Settings:
     llm_dim: int = int(os.getenv("MMVS_LLM_DIM", "4096"))
     redis_url: str = os.getenv("MMVS_REDIS_URL", "redis://localhost:6379/0")
     redis_enabled: bool = os.getenv("MMVS_REDIS_ENABLED", "false").lower() == "true"
+    redis_task_stream: str = os.getenv("MMVS_REDIS_TASK_STREAM", "mmvs:tasks:requests")
+    redis_event_stream: str = os.getenv("MMVS_REDIS_EVENT_STREAM", "mmvs:tasks:events")
     real_video_swin_path: str = os.getenv("MMVS_REAL_VIDEO_SWIN_PATH", "")
     real_llm_path: str = os.getenv("MMVS_REAL_LLM_PATH", "")
     real_adapter_path: str = os.getenv("MMVS_REAL_ADAPTER_PATH", "")

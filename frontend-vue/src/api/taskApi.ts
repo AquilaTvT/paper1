@@ -1,7 +1,7 @@
 import type { ApiResponse, CreateTaskRequest, TaskListResponse, UploadVideoResponse } from '../types/api';
 import type { InferenceTask } from '../types/task';
 
-const API_BASE = '/api';
+export const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 async function request<T>(path: string, init?: RequestInit): Promise<ApiResponse<T>> {
   const response = await fetch(`${API_BASE}${path}`, {

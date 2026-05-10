@@ -229,3 +229,56 @@ pytest
 - `InferencePipeline` 串联视频预处理、Video Swin mock 编码、双轨 Token 压缩、MLP Projection Adapter 和中文摘要生成。
 - `DualTrackTokenCompressor` 保证单帧 `196` 个 Patch Token 压缩为 `5` 个视觉 Token。
 - `worker.py` 和 `StreamPublisher` 已预留 Redis 队列与流式事件发布边界，下一阶段与 Java 后端和 Redis 接入。
+
+## 第 4 阶段：Redis 全链路联调
+
+本阶段在既有前端、Java 后端和 Python 推理服务基础上做增量接入，保留原有 in-memory/mock mode，同时新增 Redis Stream 异步链路：
+
+```text
+Vue backend mode → Java REST → Redis task stream → Python worker → Redis event stream → Java SSE → Vue
+```
+
+新增统一事件字段：`taskId`、`eventType`、`status`、`stage`、`tokenMetrics`、`summaryDelta`、`completed`、`error`。Python 内部仍可使用 snake_case，但发布到 Redis Stream 的事件字段使用 camelCase，Java 读取后按原 `GET /api/tasks/{taskId}/events` SSE 接口转发给前端。
+
+### Redis 联调启动顺序
+
+1. 启动 Redis：
+
+```bash
+docker compose up -d redis
+```
+
+2. 启动 Java 后端 Redis mode：
+
+```bash
+cd backend-java
+MMVS_INFERENCE_MODE=redis MMVS_REDIS_ENABLED=true mvn spring-boot:run
+```
+
+3. 启动 Python worker：
+
+```bash
+cd inference-python
+pip install -r requirements.txt
+MMVS_REDIS_ENABLED=true python -m app.worker
+```
+
+4. 启动 Vue backend mode：
+
+```bash
+cd frontend-vue
+npm install
+VITE_API_MODE=backend VITE_API_BASE_URL=http://localhost:8080/api npm run dev
+```
+
+Windows 可参考 `scripts/start-dev.bat`，macOS/Linux 可参考 `scripts/start-dev.sh` 中的分步说明。
+
+### 第 4 阶段测试步骤
+
+- 打开前端页面，选择本地视频上传；backend mode 会先调用 `POST /api/videos/upload` 获取 Java 后端生成的 `videoId`。
+- 输入摘要指令并创建任务；Java 调用 `POST /api/tasks` 后写入 Redis task stream。
+- Python worker 消费任务并发布 `stage`、`token_metrics`、`summary_delta`、`completed` 或 `error` 事件到 Redis event stream。
+- Java 后端消费 Redis event stream，更新内存任务状态，并通过 `GET /api/tasks/{taskId}/events` SSE 转发给 Vue。
+- 前端应看到 `waiting → running → streaming → finished` 流转、摘要增量输出和 `196 → 5` Token 压缩指标。
+
+保留原有模式：不设置 `MMVS_INFERENCE_MODE=redis` 时 Java 继续使用内存 mock scheduler；不设置 `VITE_API_MODE=backend` 时 Vue 继续使用浏览器 mock mode。

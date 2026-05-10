@@ -1,3 +1,5 @@
+import { API_BASE } from './taskApi';
+
 export type SseEventHandler = (eventName: string, payload: unknown) => void;
 
 export interface TaskEventClient {
@@ -5,8 +7,8 @@ export interface TaskEventClient {
 }
 
 export function connectTaskEvents(taskId: string, onEvent: SseEventHandler, onError?: (error: Event) => void): TaskEventClient {
-  const eventSource = new EventSource(`/api/tasks/${taskId}/events`);
-  const eventNames = ['status', 'delta', 'metrics', 'result', 'error', 'done'];
+  const eventSource = new EventSource(`${API_BASE}/tasks/${taskId}/events`);
+  const eventNames = ['status', 'stage', 'token_metrics', 'summary_delta', 'completed', 'error'];
 
   eventNames.forEach((eventName) => {
     eventSource.addEventListener(eventName, (event) => {

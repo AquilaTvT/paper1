@@ -12,6 +12,8 @@ public class InferenceProperties {
     private int rawPatchTokensPerFrame = 196;
     private int compressedTokensPerFrame = 5;
     private boolean redisEnabled = false;
+    private String redisTaskStream = "mmvs:tasks:requests";
+    private String redisEventStream = "mmvs:tasks:events";
     private boolean h2JpaEnabled = false;
 
     public String getMode() {
@@ -68,6 +70,26 @@ public class InferenceProperties {
 
     public void setRedisEnabled(boolean redisEnabled) {
         this.redisEnabled = redisEnabled;
+    }
+
+    public boolean isRedisMode() {
+        return redisEnabled || "redis".equalsIgnoreCase(mode);
+    }
+
+    public String getRedisTaskStream() {
+        return redisTaskStream;
+    }
+
+    public void setRedisTaskStream(String redisTaskStream) {
+        this.redisTaskStream = redisTaskStream;
+    }
+
+    public String getRedisEventStream() {
+        return redisEventStream;
+    }
+
+    public void setRedisEventStream(String redisEventStream) {
+        this.redisEventStream = redisEventStream;
     }
 
     public boolean isH2JpaEnabled() {
