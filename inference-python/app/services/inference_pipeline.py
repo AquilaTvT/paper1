@@ -31,28 +31,28 @@ class InferencePipeline:
         started = perf_counter()
         metadata, sampled_frames = self.preprocessor.preprocess(video_path)
         collector.set_stage("preprocess_ms", elapsed_ms(started))
-        self.stream_publisher.publish(task_id, "stage", {"stage": "video_preprocess", "sampled": sampled_frames.sampled_count})
+        self.stream_publisher.publish(task_id, "stage", status="running", stage="video_preprocess")
 
         started = perf_counter()
         patch_features = self.encoder.encode_mock(sampled_frames)
         collector.set_stage("encode_ms", elapsed_ms(started))
-        self.stream_publisher.publish(task_id, "stage", {"stage": "video_swin", "shape": list(patch_features.shape)})
+        self.stream_publisher.publish(task_id, "stage", status="running", stage="video_swin")
 
         started = perf_counter()
         compressed_tokens, token_metrics = self.compressor.compress(patch_features, query_text)
         collector.set_stage("compress_ms", elapsed_ms(started))
-        self.stream_publisher.publish(task_id, "token_metrics", token_metrics.model_dump())
+        self.stream_publisher.publish(task_id, "token_metrics", stage="token_compression", token_metrics=self._token_metrics_event(token_metrics, collector.to_runtime_metrics().total_ms))
 
         started = perf_counter()
         projected_tokens = self.adapter.project_mock(compressed_tokens)
         collector.set_stage("project_ms", elapsed_ms(started))
-        self.stream_publisher.publish(task_id, "stage", {"stage": "projection_adapter", "shape": list(projected_tokens.shape)})
+        self.stream_publisher.publish(task_id, "stage", status="running", stage="projection_adapter")
 
         started = perf_counter()
         summary_chunks: List[str] = []
         for chunk in self.generator.stream_generate(metadata, query_text, token_metrics):
             summary_chunks.append(chunk)
-            self.stream_publisher.publish(task_id, "summary_delta", {"text": chunk})
+            self.stream_publisher.publish(task_id, "summary_delta", status="streaming", stage="summary_generation", summary_delta=chunk)
         collector.set_stage("generate_ms", elapsed_ms(started))
 
         runtime_metrics: RuntimeMetrics = collector.to_runtime_metrics()
@@ -75,8 +75,26 @@ class InferencePipeline:
             key_events=key_events,
             model_info=self._model_info(),
         )
-        self.stream_publisher.publish(task_id, "completed", result.model_dump())
+        self.stream_publisher.publish(task_id, "completed", status="finished", stage="finished", completed=self._completed_event(result))
         return result
+
+    def _token_metrics_event(self, token_metrics, estimated_latency_ms: float) -> Dict[str, object]:
+        return {
+            "sampledFrames": token_metrics.sampled_frames,
+            "rawPatchTokensPerFrame": token_metrics.raw_patch_tokens_per_frame,
+            "compressedTokensPerFrame": token_metrics.compressed_tokens_per_frame,
+            "rawVisualTokens": token_metrics.raw_visual_tokens,
+            "compressedVisualTokens": token_metrics.compressed_visual_tokens,
+            "compressionRatio": token_metrics.compression_ratio,
+            "estimatedLatencyMs": int(estimated_latency_ms),
+        }
+
+    def _completed_event(self, result: InferenceResult) -> Dict[str, object]:
+        return {
+            "summary": result.summary,
+            "keyEvents": result.key_events,
+            "estimatedLatencyMs": int(result.runtime_metrics.total_ms),
+        }
 
     def _model_info(self) -> Dict[str, str]:
         return {

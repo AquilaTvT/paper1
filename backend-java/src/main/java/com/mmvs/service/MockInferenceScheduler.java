@@ -8,7 +8,6 @@ import com.mmvs.model.InferenceTask;
 import com.mmvs.model.TaskStatus;
 import jakarta.annotation.PreDestroy;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +52,7 @@ public class MockInferenceScheduler {
 
             TokenMetricsDto metrics = buildTokenMetrics(taskId, System.currentTimeMillis() - started);
             taskService.setTokenMetrics(taskId, metrics);
-            sseEmitterService.send(taskId, StreamEvent.of(taskId, "token_metrics", "token_compression", metrics));
+            sseEmitterService.send(taskId, StreamEvent.tokenMetrics(taskId, "token_compression", metrics));
             sleep(inferenceProperties.getMockStageDelayMs());
 
             sendStage(taskId, TaskStatus.RUNNING, "content_token", 52, "Content Token 分支保留主体动作和关键事件");
@@ -70,27 +69,24 @@ public class MockInferenceScheduler {
             for (String delta : deltas) {
                 sleep(inferenceProperties.getMockSummaryDelayMs());
                 taskService.appendSummaryDelta(taskId, delta);
-                sseEmitterService.send(taskId, StreamEvent.of(taskId, "summary_delta", "summary_generation", Map.of("text", delta)));
+                sseEmitterService.send(taskId, StreamEvent.summaryDelta(taskId, delta));
             }
 
             long elapsed = System.currentTimeMillis() - started;
             InferenceResult result = taskService.completeTask(taskId, String.join("", deltas), keyEvents(), elapsed);
-            sseEmitterService.send(taskId, StreamEvent.of(taskId, "completed", "finished", result));
+            sseEmitterService.send(taskId, StreamEvent.completed(taskId, result));
             sseEmitterService.complete(taskId);
         } catch (Exception exception) {
             taskService.failTask(taskId, "mock_inference", exception.getMessage());
-            sseEmitterService.send(taskId, StreamEvent.of(taskId, "error", "mock_inference", Map.of("message", exception.getMessage())));
+            sseEmitterService.send(taskId, StreamEvent.error(taskId, "mock_inference", exception.getMessage()));
             sseEmitterService.complete(taskId);
         }
     }
 
     private void sendStage(String taskId, TaskStatus status, String stage, int progress, String message) {
         InferenceTask task = taskService.updateStage(taskId, status, stage, progress, message);
-        sseEmitterService.send(taskId, StreamEvent.of(taskId, "status", stage, Map.of(
-                "status", task.getStatus().getValue(),
-                "progress", task.getProgress()
-        )));
-        sseEmitterService.send(taskId, StreamEvent.of(taskId, "stage", stage, Map.of("message", message)));
+        sseEmitterService.send(taskId, StreamEvent.status(taskId, task.getStatus().getValue(), stage));
+        sseEmitterService.send(taskId, StreamEvent.stage(taskId, task.getStatus().getValue(), stage));
     }
 
     private TokenMetricsDto buildTokenMetrics(String taskId, long elapsedMs) {

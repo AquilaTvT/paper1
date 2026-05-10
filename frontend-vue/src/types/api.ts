@@ -7,7 +7,18 @@ export interface ApiResponse<T> {
   requestId: string;
 }
 
-export interface UploadVideoResponse extends VideoFileInfo {}
+export interface UploadVideoResponse {
+  videoId: string;
+  originalFileName?: string;
+  storedPath?: string;
+  fileSize?: number;
+  contentType?: string;
+  createdAt?: string;
+  name?: string;
+  sizeBytes?: number;
+  durationSeconds?: number;
+  source?: VideoFileInfo['source'];
+}
 
 export interface CreateTaskRequest {
   videoId: string;

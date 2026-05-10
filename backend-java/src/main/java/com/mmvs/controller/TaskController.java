@@ -5,13 +5,12 @@ import com.mmvs.dto.CreateTaskRequest;
 import com.mmvs.dto.StreamEvent;
 import com.mmvs.dto.TaskResponse;
 import com.mmvs.model.InferenceTask;
-import com.mmvs.service.MockInferenceScheduler;
+import com.mmvs.service.TaskDispatchService;
 import com.mmvs.service.SseEmitterService;
 import com.mmvs.service.TaskService;
 import com.mmvs.util.IdGenerator;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,23 +25,23 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class TaskController {
 
     private final TaskService taskService;
-    private final MockInferenceScheduler mockInferenceScheduler;
+    private final TaskDispatchService taskDispatchService;
     private final SseEmitterService sseEmitterService;
 
     public TaskController(
             TaskService taskService,
-            MockInferenceScheduler mockInferenceScheduler,
+            TaskDispatchService taskDispatchService,
             SseEmitterService sseEmitterService
     ) {
         this.taskService = taskService;
-        this.mockInferenceScheduler = mockInferenceScheduler;
+        this.taskDispatchService = taskDispatchService;
         this.sseEmitterService = sseEmitterService;
     }
 
     @PostMapping
     public ApiResponse<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest request) {
         InferenceTask task = taskService.createTask(request.videoId(), request.effectiveQueryText());
-        mockInferenceScheduler.schedule(task.getTaskId());
+        taskDispatchService.dispatch(task.getTaskId());
         return ApiResponse.ok(TaskResponse.from(task), IdGenerator.requestId());
     }
 
@@ -66,10 +65,7 @@ public class TaskController {
         try {
             emitter.send(SseEmitter.event()
                     .name("status")
-                    .data(StreamEvent.of(taskId, "status", task.getCurrentStage(), Map.of(
-                            "status", task.getStatus().getValue(),
-                            "progress", task.getProgress()
-                    ))));
+                    .data(StreamEvent.status(taskId, task.getStatus().getValue(), task.getCurrentStage())));
         } catch (Exception ignored) {
             emitter.complete();
         }
