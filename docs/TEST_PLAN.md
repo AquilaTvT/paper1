@@ -65,7 +65,7 @@ compressedVisualTokens = T × 5
 | 测试编号 | 测试目标 | 测试步骤 | 输入数据 | 预期结果 | 实际结果填写位置 | 是否通过 |
 | --- | --- | --- | --- | --- | --- | --- |
 | ST-01 | 验证正常状态流转 | 创建任务并观察时间线 | 短视频与摘要指令 | 状态按 `waiting → running → streaming → finished` 流转 | 时间线截图 | 待填写 |
-| ST-02 | 验证阶段名称展示 | 在任务执行过程中观察 stage | Redis backend mode | 页面显示 `video_preprocess`、`video_swin`、`token_compression`、`projection_adapter`、`summary_generation` | 时间线截图 | 待填写 |
+| ST-02 | 验证阶段名称展示 | 在任务执行过程中观察 stage | Redis backend mode | 页面显示 `video_preprocess` / `video_sampling`、`video_swin_feature`、`token_compression`、`projection_adapter` / `mlp_adapter`、`summary_generation` | 时间线截图 | 待填写 |
 | ST-03 | 验证失败状态 | 停止 Python worker 后创建任务 | Redis backend mode | 任务最终进入 `failed` 或保持等待并有错误提示 | 异常截图 | 待填写 |
 
 ## 7. SSE 流式输出测试
@@ -91,7 +91,7 @@ compressedVisualTokens = T × 5
 | 测试编号 | 测试目标 | 测试步骤 | 输入数据 | 预期结果 | 实际结果填写位置 | 是否通过 |
 | --- | --- | --- | --- | --- | --- | --- |
 | PY-01 | 验证 Python 代码可编译 | 执行 `python -m compileall app` | Python 源码 | 无语法错误 | 终端截图 | 待填写 |
-| PY-02 | 验证单元测试 | 执行 `pytest` | 测试用例 | 所有测试通过 | 终端截图 | 待填写 |
+| PY-02 | 验证单元测试 | 执行 `python -m pytest -q` | 测试用例 | 所有测试通过 | 终端截图 | 待填写 |
 | PY-03 | 验证 mock infer 接口 | 调用 `POST /mock-infer` | `task_id`、`video_path`、`query_text` | 返回摘要、关键事件和 Token 指标 | 接口响应截图 | 待填写 |
 | PY-04 | 验证 pipeline 阶段顺序 | 查看 worker 日志 | Redis backend mode | 日志依次出现预处理、编码、压缩、投影、摘要生成 | 终端截图 | 待填写 |
 

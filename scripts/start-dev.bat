@@ -1,5 +1,5 @@
 @echo off
-echo 第 4 阶段本地联调启动顺序：
+echo Release candidate 本地联调启动顺序：
 echo.
 echo 1. 启动 Redis：
 echo    docker compose up -d redis

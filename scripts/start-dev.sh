@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cat <<'HELP'
-第 4 阶段本地联调启动顺序：
+Release candidate 本地联调启动顺序：
 
 1. 启动 Redis：
    docker compose up -d redis

@@ -192,19 +192,33 @@ VITE_API_MODE=backend VITE_API_BASE_URL=http://localhost:8080/api npm run dev
 
 ## 10. 构建与测试命令汇总
 
+推荐使用仓库根目录的检查脚本：
+
+```bash
+./scripts/check-frontend.sh
+./scripts/check-backend.sh
+./scripts/check-python.sh
+./scripts/check-all.sh
+```
+
+也可以手动执行：
+
 ```bash
 cd frontend-vue
+npm install
 npm run build
 ```
 
 ```bash
 cd backend-java
-mvn test
-mvn package
+mvn -q -DskipTests package
 ```
 
 ```bash
 cd inference-python
+python -m pip install -r requirements.txt
 python -m compileall app
-pytest
+python -m pytest -q
 ```
+
+最终发布前请参考 `docs/RELEASE_CHECKLIST.md`。

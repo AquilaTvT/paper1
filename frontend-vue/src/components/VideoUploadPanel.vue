@@ -4,13 +4,15 @@
       <span class="step-index">01</span>
       <div>
         <h2>视频上传模块</h2>
-        <p>当前为 <strong>MOCK MODE</strong>：本地视频仅读取浏览器可获得的文件名、大小、格式和时长元数据。</p>
+        <p v-if="apiMode === 'backend'">当前为 <strong>BACKEND MODE</strong>：文件会上传到 Java 后端，并由后端生成 videoId。</p>
+        <p v-else>当前为 <strong>MOCK MODE</strong>：本地视频仅读取浏览器可获得的文件名、大小、格式和时长元数据。</p>
       </div>
     </div>
 
     <div class="mode-notice">
-      <strong>Mock mode 边界说明</strong>
-      <p>此模式不会读取本地文件路径，也不会把文件内容上传到第三方服务；摘要来自样例场景、用户指令和系统指标。真实视频语义理解需要切换 backend mode，并由 inference-python 解码视频帧。</p>
+      <strong>{{ apiMode === 'backend' ? 'Backend mode 边界说明' : 'Mock mode 边界说明' }}</strong>
+      <p v-if="apiMode === 'backend'">backend mode 会把文件上传到本地 Java 后端用于演示链路；默认仍使用 mock/in-memory 或 Redis mock 推理结果，除非单独接入真实模型权重。</p>
+      <p v-else>此模式不会读取本地文件路径，也不会把文件内容上传到第三方服务；摘要来自样例场景、用户指令和系统指标，不代表真实画面识别。</p>
     </div>
 
     <label class="upload-dropzone">
@@ -65,6 +67,7 @@ const emit = defineEmits<{
 
 defineProps<{
   video: VideoFileInfo | null;
+  apiMode: 'mock' | 'backend';
 }>();
 
 function fallbackDuration(file: File) {

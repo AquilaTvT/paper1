@@ -4,7 +4,7 @@
     <ErrorBanner :message="errorMessage || streamError" />
 
     <div class="layout-grid top-grid">
-      <VideoUploadPanel :video="selectedVideo" @file-selected="handleFileSelected" @use-sample="useSampleVideo" />
+      <VideoUploadPanel :video="selectedVideo" :api-mode="apiMode" @file-selected="handleFileSelected" @use-sample="useSampleVideo" />
       <PromptEditor v-model="instruction" :disabled="!canSubmit" @create-task="handleCreateTask" />
     </div>
 
