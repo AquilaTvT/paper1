@@ -3,19 +3,25 @@
     <div class="card-heading">
       <div>
         <h2>双轨 Token 压缩指标</h2>
-        <p>论文核心指标：单帧视觉 Patch Token 从 196 压缩到 5。</p>
+        <p>论文核心指标：单帧视觉 Patch Token 从 196 压缩到 5，结构清晰适合论文截图。</p>
       </div>
       <strong>{{ metrics.compressionText }}</strong>
     </div>
 
     <div class="token-hero">
       <div>
-        <span>原始 Patch Token / 帧</span>
+        <span>196 Patch Tokens / frame</span>
         <strong>{{ metrics.rawPatchTokensPerFrame }}</strong>
       </div>
-      <div class="arrow">→</div>
+      <div class="arrow">↓</div>
       <div>
-        <span>压缩视觉 Token / 帧</span>
+        <span>Content Token {{ metrics.contentTokensPerFrame }}</span>
+        <strong>{{ metrics.contentTokensPerFrame }} + {{ metrics.contextTokensPerFrame }}</strong>
+        <span>Context Token {{ metrics.contextTokensPerFrame }}</span>
+      </div>
+      <div class="arrow">↓</div>
+      <div>
+        <span>5 Visual Tokens / frame</span>
         <strong>{{ metrics.compressedTokensPerFrame }}</strong>
       </div>
     </div>

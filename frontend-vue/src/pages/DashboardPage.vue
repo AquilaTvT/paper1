@@ -41,7 +41,7 @@ import { sampleVideo } from '../data/sampleTasks';
 import { useLocalHistory } from '../composables/useLocalHistory';
 import { useBackendInferenceTask } from '../composables/useBackendInferenceTask';
 import { useMockInferenceTask } from '../composables/useMockInferenceTask';
-import type { VideoFileInfo } from '../types/task';
+import type { LocalVideoMetadata, VideoFileInfo } from '../types/task';
 import { createTokenMetrics } from '../utils/tokenMetrics';
 
 const selectedVideo = ref<VideoFileInfo | null>(sampleVideo);
@@ -56,8 +56,8 @@ const { currentTask, errorMessage, isStreaming, streamError, canCreateTask, crea
 const activeMetrics = computed(() => currentTask.value?.tokenMetrics ?? createTokenMetrics(selectedVideo.value?.durationSeconds ?? sampleVideo.durationSeconds));
 const canSubmit = computed(() => Boolean(selectedVideo.value) && instruction.value.trim().length > 0 && canCreateTask.value);
 
-async function handleFileSelected(file: File) {
-  const localVideo = createVideoFromFile(file);
+async function handleFileSelected(file: File, metadata: LocalVideoMetadata) {
+  const localVideo = createVideoFromFile(file, metadata);
   selectedVideo.value = localVideo;
   if (apiMode !== 'backend') return;
 
@@ -68,6 +68,8 @@ async function handleFileSelected(file: File) {
       videoId: response.data.videoId,
       name: response.data.originalFileName ?? response.data.name ?? localVideo.name,
       sizeBytes: response.data.fileSize ?? response.data.sizeBytes ?? localVideo.sizeBytes,
+      fileType: localVideo.fileType,
+      durationReadable: localVideo.durationReadable,
       source: 'upload',
       createdAt: response.data.createdAt ?? localVideo.createdAt,
     };

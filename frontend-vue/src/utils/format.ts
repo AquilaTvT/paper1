@@ -5,7 +5,8 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / 1024 ** index).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
 }
 
-export function formatDuration(seconds: number): string {
+export function formatDuration(seconds: number, readable = true): string {
+  if (!readable) return '未能读取时长';
   const safeSeconds = Math.max(0, Math.round(seconds));
   const minutes = Math.floor(safeSeconds / 60);
   const remainSeconds = safeSeconds % 60;
