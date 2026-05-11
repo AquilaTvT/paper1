@@ -114,8 +114,8 @@ curl -F "file=@demo.mp4" http://localhost:8080/api/videos/upload
 {
   "success": false,
   "data": null,
-  "message": "仅支持 mp4、mov、avi、mkv 视频文件",
-  "errorCode": "INVALID_FILE_TYPE",
+  "message": "仅支持 mp4、mov、avi、mkv 视频格式",
+  "errorCode": "VIDEO_INVALID_FORMAT",
   "requestId": "req_demo"
 }
 ```
@@ -127,7 +127,7 @@ curl -F "file=@demo.mp4" http://localhost:8080/api/videos/upload
 | 接口用途 | 根据 `videoId` 和用户指令创建摘要任务 |
 | 请求方法 | `POST` |
 | URL | `/api/tasks` |
-| 请求参数 | JSON：`videoId`、`instruction`、`runMode`、`stream`；Java DTO 内部会使用有效查询文本 |
+| 请求参数 | JSON：必填 `videoId`，可传 `instruction` 或 `queryText`；前端会附带 `runMode`、`stream` 作为兼容字段，Java DTO 会使用有效查询文本 |
 | 对应前端调用文件 | `frontend-vue/src/api/taskApi.ts` 中的 `createTask` |
 | 对应后端 Controller | `backend-java/src/main/java/com/mmvs/controller/TaskController.java`；任务投递由 `TaskDispatchService` 执行 |
 

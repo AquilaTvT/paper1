@@ -1,0 +1,20 @@
+# Frontend
+frontend-vue/node_modules/
+frontend-vue/dist/
+frontend-vue/.vite/
+
+# Java
+backend-java/target/
+backend-java/uploads/
+
+# Python
+inference-python/.venv/
+inference-python/.pytest_cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local runtime files
+.env
+uploads/
+.DS_Store
