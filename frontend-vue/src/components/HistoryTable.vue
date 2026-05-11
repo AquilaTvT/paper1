@@ -3,7 +3,7 @@
     <div class="card-heading">
       <div>
         <h2>历史任务列表</h2>
-        <p>任务完成后写入 localStorage，模拟后端历史结果查询。</p>
+        <p>任务完成后保留在本机浏览器中，便于回看最近结果。</p>
       </div>
       <button class="ghost-button" type="button" @click="$emit('clear')">重置历史</button>
     </div>

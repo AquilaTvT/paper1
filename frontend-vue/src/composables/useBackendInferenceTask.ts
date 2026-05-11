@@ -72,23 +72,43 @@ function updateStages(stages: PipelineStage[], currentStage: PipelineStageKey): 
   const stageOrder = stages.findIndex((stage) => stage.key === currentStage);
   return stages.map((stage, index) => {
     if (index < stageOrder) return { ...stage, status: 'done' };
-    if (stage.key === currentStage) return { ...stage, status: 'active', detail: '来自 Java SSE / Redis Stream 的实时事件。' };
+    if (stage.key === currentStage) return { ...stage, status: 'active', detail: '来自正式分析服务的实时进度。' };
     return { ...stage, status: 'pending' };
   });
 }
 
+function operationText(operation?: LightSwitchAnalysis['operationGuess']): string {
+  const map = {
+    turn_on: '开灯',
+    turn_off: '关灯',
+    press_only: '仅能确认按压',
+    unknown: '无法稳定判断',
+  };
+  return operation ? map[operation] : '无法稳定判断';
+}
+
+function brightnessText(trend?: LightSwitchAnalysis['brightnessTrend']): string {
+  const map = {
+    brighter: '亮度上升',
+    darker: '亮度下降',
+    unchanged: '亮度变化不明显',
+  };
+  return trend ? map[trend] : '亮度变化不明确';
+}
+
 function lightSwitchConclusion(completed: BackendCompletedPayload): string {
   if (completed.fallbackReason) {
-    return '后端已回退到常规摘要流程，轻量视觉分析未运行。';
+    return `不确定性说明：正式分析未能完成轻量视觉识别，原因：${completed.fallbackReason}。`;
   }
   if (completed.scenarioType !== 'light_switch_demo' || !completed.lightSwitchAnalysis) {
-    return '后端任务已完成。';
+    return '正式分析已完成。';
   }
   const analysis = completed.lightSwitchAnalysis;
-  if (analysis.operationGuess === 'turn_on') return '检测到开关按压动作，亮度上升判断为谨慎推测。';
-  if (analysis.operationGuess === 'turn_off') return '检测到开关按压动作，亮度下降判断为谨慎推测。';
-  if (analysis.motionDetected) return '检测到开关按压动作，但亮度变化不足以判断开灯或关灯。';
-  return '画面证据较弱，需结合原视频复核。';
+  const action = analysis.motionDetected ? '按压动作：检测到。' : '按压动作：证据较弱。';
+  const brightness = `亮度变化：${brightnessText(analysis.brightnessTrend)}。`;
+  const operation = `操作判断：${operationText(analysis.operationGuess)}。`;
+  const confidence = typeof analysis.confidence === 'number' ? `置信度约 ${Math.round(analysis.confidence * 100)}%。` : '';
+  return `${action}${brightness}${operation}${confidence} 不确定性说明：该结果基于帧差与亮度变化估计，请结合原视频复核。`;
 }
 
 function metricsFromBackend(metrics: BackendTaskResponse['tokenMetrics'], durationSeconds: number) {
@@ -142,12 +162,13 @@ export function useBackendInferenceTask(onFinished: (task: InferenceTask) => voi
     client?.close();
 
     try {
-      const response = await createTask({ videoId: input.video.videoId, instruction: input.instruction, runMode: 'mock', stream: true });
+      const response = await createTask({ videoId: input.video.videoId, instruction: input.instruction, runMode: 'real', stream: true });
       currentTask.value = createBackendTask(input, response.data as unknown as BackendTaskResponse);
-      client = connectTaskEvents(currentTask.value.taskId, handleEvent, () => markStreamError('SSE 连接已断开，请检查 Java 后端。'));
+      client = connectTaskEvents(currentTask.value.taskId, handleEvent, () => markStreamError('实时连接已断开，请检查任务服务。'));
     } catch (error) {
-      const message = error instanceof Error ? error.message : '创建后端任务失败。';
+      const message = error instanceof Error ? error.message : '创建正式分析任务失败。';
       markStreamError(message);
+      stopStream();
       errorMessage.value = message;
     }
   }

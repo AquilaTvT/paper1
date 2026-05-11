@@ -14,6 +14,7 @@ public class TaskDispatchService {
     private final TaskService taskService;
     private final VideoStorageService videoStorageService;
     private final MockInferenceScheduler mockInferenceScheduler;
+    private final PythonInferenceScheduler pythonInferenceScheduler;
     private final StringRedisTemplate redisTemplate;
     private final InferenceProperties inferenceProperties;
 
@@ -21,17 +22,24 @@ public class TaskDispatchService {
             TaskService taskService,
             VideoStorageService videoStorageService,
             MockInferenceScheduler mockInferenceScheduler,
+            PythonInferenceScheduler pythonInferenceScheduler,
             StringRedisTemplate redisTemplate,
             InferenceProperties inferenceProperties
     ) {
         this.taskService = taskService;
         this.videoStorageService = videoStorageService;
         this.mockInferenceScheduler = mockInferenceScheduler;
+        this.pythonInferenceScheduler = pythonInferenceScheduler;
         this.redisTemplate = redisTemplate;
         this.inferenceProperties = inferenceProperties;
     }
 
-    public void dispatch(String taskId) {
+    public void dispatch(String taskId, boolean formalAnalysisRequested) {
+        if (formalAnalysisRequested) {
+            pythonInferenceScheduler.schedule(taskId);
+            return;
+        }
+
         if (!inferenceProperties.isRedisMode()) {
             mockInferenceScheduler.schedule(taskId);
             return;

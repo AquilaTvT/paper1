@@ -41,7 +41,7 @@ public class TaskController {
     @PostMapping
     public ApiResponse<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest request) {
         InferenceTask task = taskService.createTask(request.videoId(), request.effectiveQueryText());
-        taskDispatchService.dispatch(task.getTaskId());
+        taskDispatchService.dispatch(task.getTaskId(), request.formalAnalysisRequested());
         return ApiResponse.ok(TaskResponse.from(task), IdGenerator.requestId());
     }
 
@@ -66,6 +66,11 @@ public class TaskController {
             emitter.send(SseEmitter.event()
                     .name("status")
                     .data(StreamEvent.status(taskId, task.getStatus().getValue(), task.getCurrentStage())));
+            if (task.getErrorMessage() != null && !task.getErrorMessage().isBlank()) {
+                emitter.send(SseEmitter.event()
+                        .name("error")
+                        .data(StreamEvent.error(taskId, task.getCurrentStage(), task.getErrorMessage())));
+            }
         } catch (Exception ignored) {
             emitter.complete();
         }

@@ -11,7 +11,7 @@
     <div class="terminal-window">
       <div class="terminal-bar">
         <span></span><span></span><span></span>
-        <em>summary stream</em>
+        <em>摘要输出</em>
       </div>
       <div class="terminal-content">
         <p v-if="chunks.length === 0" class="placeholder">创建任务后，这里将逐句显示视频摘要与关键事件。</p>

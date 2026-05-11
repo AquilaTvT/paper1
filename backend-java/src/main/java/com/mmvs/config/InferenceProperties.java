@@ -15,6 +15,8 @@ public class InferenceProperties {
     private String redisTaskStream = "mmvs:tasks:requests";
     private String redisEventStream = "mmvs:tasks:events";
     private boolean h2JpaEnabled = false;
+    private String pythonBaseUrl = "http://localhost:8000";
+    private int pythonTimeoutSeconds = 120;
 
     public String getMode() {
         return mode;
@@ -98,5 +100,21 @@ public class InferenceProperties {
 
     public void setH2JpaEnabled(boolean h2JpaEnabled) {
         this.h2JpaEnabled = h2JpaEnabled;
+    }
+
+    public String getPythonBaseUrl() {
+        return pythonBaseUrl;
+    }
+
+    public void setPythonBaseUrl(String pythonBaseUrl) {
+        this.pythonBaseUrl = pythonBaseUrl;
+    }
+
+    public int getPythonTimeoutSeconds() {
+        return pythonTimeoutSeconds;
+    }
+
+    public void setPythonTimeoutSeconds(int pythonTimeoutSeconds) {
+        this.pythonTimeoutSeconds = pythonTimeoutSeconds;
     }
 }
