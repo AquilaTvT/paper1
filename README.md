@@ -4,7 +4,9 @@
 
 ## 当前阶段
 
-当前完成第 0 阶段：工程规格书与实施文档。此阶段不编写大量业务代码，重点是明确系统边界、目录结构、接口契约、数据模型、运行模式、验收标准和论文映射。
+当前完成第 5 阶段：在既有前端、Java 后端、Python 推理服务和 Redis 异步链路基础上，补全文档、测试计划、论文映射和答辩截图支持材料。第 5 阶段不重写业务代码，重点是让项目可以直接服务本科毕业论文第 3 章到第 7 章以及答辩展示。
+
+历史阶段说明：第 0 阶段完成工程规格书与实施文档；第 1 阶段完成 Vue 前端；第 2 阶段完成 Java 后端；第 3 阶段完成 Python mock 推理服务；第 4 阶段完成 Redis 全链路联调。
 
 ## 系统目标
 
@@ -121,11 +123,39 @@ waiting → running → streaming → finished
 
 ## 文档入口
 
+### 基础设计文档
+
 - [工程规格书](docs/PROJECT_SPEC.md)
 - [实施计划](docs/IMPLEMENTATION_PLAN.md)
 - [API 契约](docs/API_CONTRACT.md)
 - [数据模型设计](docs/DATA_MODEL.md)
-- [论文章节映射](docs/THESIS_MAPPING.md)
+
+### 第 5 阶段新增文档索引
+
+- [系统架构说明](docs/ARCHITECTURE.md)：说明 `frontend-vue`、`backend-java`、`inference-python`、Redis、SSE 和推理 pipeline 的总体关系。
+- [API 接口说明](docs/API.md)：整理 Java REST API、SSE 事件和 Python FastAPI 接口，便于接口测试和论文引用。
+- [本地部署与联调说明](docs/DEPLOYMENT.md)：给出 Redis、Python、Java、Vue 的本地启动顺序和命令示例。
+- [系统测试计划](docs/TEST_PLAN.md)：面向论文第 7 章，提供功能测试、接口测试、SSE、Redis、Token 压缩等测试表格。
+- [论文章节与工程实现映射](docs/THESIS_MAPPING.md)：说明第 3 章至第 7 章如何对应当前代码与文档。
+- [论文与答辩截图指南](docs/SCREENSHOT_GUIDE.md)：列出论文和答辩建议截图、截图目的和操作方法。
+- [常见问题排查](docs/TROUBLESHOOTING.md)：整理 npm、Maven、Python、Redis、SSE、端口占用等问题。
+
+### 推荐阅读顺序
+
+1. 先阅读 [README](README.md) 了解项目目标、运行模式和阶段成果。
+2. 再阅读 [系统架构说明](docs/ARCHITECTURE.md) 理解整体链路。
+3. 本地运行前阅读 [本地部署与联调说明](docs/DEPLOYMENT.md)。
+4. 做接口验证时阅读 [API 接口说明](docs/API.md)。
+5. 写论文时阅读 [论文章节与工程实现映射](docs/THESIS_MAPPING.md) 和 [系统测试计划](docs/TEST_PLAN.md)。
+6. 准备答辩材料时阅读 [论文与答辩截图指南](docs/SCREENSHOT_GUIDE.md) 和 [常见问题排查](docs/TROUBLESHOOTING.md)。
+
+### 论文各章节入口
+
+- 第 3 章需求分析：见 [论文章节与工程实现映射](docs/THESIS_MAPPING.md#第-3-章-需求分析)。
+- 第 4 章系统总体设计：见 [系统架构说明](docs/ARCHITECTURE.md) 和 [论文章节映射第 4 章](docs/THESIS_MAPPING.md#第-4-章-系统总体设计)。
+- 第 5 章系统详细设计：见 [论文章节映射第 5 章](docs/THESIS_MAPPING.md#第-5-章-系统详细设计)。
+- 第 6 章系统代码实现：见 [论文章节映射第 6 章](docs/THESIS_MAPPING.md#第-6-章-系统代码实现)。
+- 第 7 章系统测试：见 [系统测试计划](docs/TEST_PLAN.md) 和 [截图指南](docs/SCREENSHOT_GUIDE.md)。
 
 ## 最终验收目标
 
@@ -282,3 +312,24 @@ Windows 可参考 `scripts/start-dev.bat`，macOS/Linux 可参考 `scripts/start
 - 前端应看到 `waiting → running → streaming → finished` 流转、摘要增量输出和 `196 → 5` Token 压缩指标。
 
 保留原有模式：不设置 `MMVS_INFERENCE_MODE=redis` 时 Java 继续使用内存 mock scheduler；不设置 `VITE_API_MODE=backend` 时 Vue 继续使用浏览器 mock mode。
+
+
+## 第 5 阶段：论文与答辩支撑文档
+
+第 5 阶段仅增量完善文档，不改变既有接口路径、不引入新依赖、不重构前端页面。新增文档覆盖系统架构、API、部署、测试计划、论文章节映射、截图指南和常见问题排查，目标是让当前工程可以直接支撑本科毕业论文第 3 章至第 7 章。
+
+### 本地测试推荐顺序
+
+1. `docker compose up -d redis`：启动 Redis。
+2. `cd inference-python && python -m compileall app && pytest`：验证 Python 推理服务代码和测试。
+3. `cd inference-python && MMVS_REDIS_ENABLED=true python -m app.worker`：启动 Python worker。
+4. `cd backend-java && MMVS_INFERENCE_MODE=redis MMVS_REDIS_ENABLED=true mvn spring-boot:run`：启动 Java 后端 Redis mode。
+5. `cd frontend-vue && VITE_API_MODE=backend VITE_API_BASE_URL=http://localhost:8080/api npm run dev`：启动 Vue backend mode。
+6. 浏览器访问 `http://localhost:5173`，上传视频、创建任务，并检查状态流转、SSE 摘要和 `196 → 5` Token 压缩指标。
+
+如果答辩现场网络或后端环境异常，可以退回前端 mock mode：
+
+```bash
+cd frontend-vue
+npm run dev
+```
