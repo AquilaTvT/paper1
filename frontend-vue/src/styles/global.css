@@ -411,3 +411,61 @@ td { color: #3c3c3c; line-height: 1.5; font-size: 14px; }
   .metrics-grid.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .token-hero { grid-template-columns: 1fr; }
 }
+
+.mode-selector-card,
+.service-status-card { margin-top: 20px; }
+
+.mode-toggle {
+  display: inline-flex;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid rgba(36, 36, 36, 0.14);
+  border-radius: 14px;
+  background: #f4f4f4;
+}
+
+.mode-toggle button {
+  min-width: 132px;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 18px;
+  background: transparent;
+  color: #424242;
+  font-weight: 900;
+}
+
+.mode-toggle button.active {
+  background: #181818;
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(30, 30, 30, 0.14);
+}
+
+.service-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.service-status-grid div {
+  padding: 14px;
+  border: 1px solid rgba(39, 38, 34, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.service-status-grid span {
+  display: block;
+  color: #707070;
+  font-size: 13px;
+}
+
+.service-status-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: #1d1d1d;
+  font-size: 18px;
+}
+
+.service-status-grid strong.ok { color: #2e5a35; }
+.service-status-grid strong.bad { color: #7a2626; }
+.service-message { margin-top: 14px; color: #5f5f5f; line-height: 1.7; }

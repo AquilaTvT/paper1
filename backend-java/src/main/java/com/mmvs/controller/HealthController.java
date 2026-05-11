@@ -2,6 +2,7 @@ package com.mmvs.controller;
 
 import com.mmvs.config.InferenceProperties;
 import com.mmvs.dto.ApiResponse;
+import com.mmvs.service.PythonInferenceScheduler;
 import com.mmvs.util.IdGenerator;
 import java.time.Instant;
 import java.util.Map;
@@ -14,9 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class HealthController {
 
     private final InferenceProperties inferenceProperties;
+    private final PythonInferenceScheduler pythonInferenceScheduler;
 
-    public HealthController(InferenceProperties inferenceProperties) {
+    public HealthController(InferenceProperties inferenceProperties, PythonInferenceScheduler pythonInferenceScheduler) {
         this.inferenceProperties = inferenceProperties;
+        this.pythonInferenceScheduler = pythonInferenceScheduler;
     }
 
     @GetMapping("/health")
@@ -25,8 +28,7 @@ public class HealthController {
                 "service", "backend-java",
                 "status", "up",
                 "mode", inferenceProperties.getMode(),
-                "redisEnabled", inferenceProperties.isRedisEnabled(),
-                "h2JpaEnabled", inferenceProperties.isH2JpaEnabled(),
+                "pythonConnected", pythonInferenceScheduler.isPythonHealthy(),
                 "time", Instant.now().toString()
         ), IdGenerator.requestId());
     }

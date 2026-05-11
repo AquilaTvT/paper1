@@ -6,12 +6,12 @@
         <h2>视频上传</h2>
         <p>选择本地视频后，可立即在浏览器中预览并读取基础信息。</p>
       </div>
-      <span class="subtle-tag">{{ apiMode === 'backend' ? '后端处理' : '本地演示' }}</span>
+      <span class="subtle-tag">{{ mode === 'formal' ? '正式分析' : '本地演示' }}</span>
     </div>
 
     <div class="mode-notice">
       <strong>预览与理解</strong>
-      <p>{{ apiMode === 'backend' ? '本地预览由浏览器完成；摘要任务会提交到已配置的后端服务。' : '本地预览只说明文件可播放；摘要结果基于样例场景与基础元数据生成。' }}</p>
+      <p>{{ mode === 'formal' ? '本地预览由浏览器完成；分析任务会提交到服务端处理。' : '本地预览只说明文件可播放；摘要结果基于样例场景与基础元数据生成。' }}</p>
     </div>
 
     <label class="upload-dropzone">
@@ -57,7 +57,7 @@
           </div>
           <div>
             <dt>摘要依据</dt>
-            <dd>{{ apiMode === 'backend' ? '后端任务结果' : '样例场景与元数据' }}</dd>
+            <dd>{{ mode === 'formal' ? '正式分析结果' : '样例场景与元数据' }}</dd>
           </div>
         </dl>
       </div>
@@ -76,7 +76,7 @@ const emit = defineEmits<{
 
 defineProps<{
   video: VideoFileInfo | null;
-  apiMode: 'mock' | 'backend';
+  mode: 'local' | 'formal';
 }>();
 
 function fallbackDuration(file: File) {

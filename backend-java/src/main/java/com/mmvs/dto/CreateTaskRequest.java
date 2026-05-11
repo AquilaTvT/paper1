@@ -5,7 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 public record CreateTaskRequest(
         @NotBlank(message = "videoId 不能为空") String videoId,
         String queryText,
-        String instruction
+        String instruction,
+        String runMode,
+        Boolean stream
 ) {
 
     public String effectiveQueryText() {
@@ -16,5 +18,9 @@ public record CreateTaskRequest(
             return instruction.trim();
         }
         return "请总结视频中的关键事件。";
+    }
+
+    public boolean formalAnalysisRequested() {
+        return "real".equalsIgnoreCase(runMode) || "formal".equalsIgnoreCase(runMode);
     }
 }
