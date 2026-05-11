@@ -7,7 +7,7 @@
 - Python 3.10+
 - FastAPI
 - NumPy mock 特征张量
-- 可选 OpenCV 元数据读取：如果环境安装 `opencv-python-headless` 且视频路径存在，则读取真实视频元数据；否则使用 fallback mock metadata。
+- OpenCV 轻量视频读取：用于本地元数据读取，以及灯开关短视频的帧采样、动作强度和亮度变化分析。
 - Pytest 测试 Token 压缩和完整 pipeline。
 
 ## 启动方式
@@ -36,7 +36,19 @@ curl -X POST http://localhost:8000/mock-infer \
   }'
 ```
 
-`/infer` 与 `/mock-infer` 当前都运行 mock pipeline，后续第 4 阶段可由 Java 后端通过 Redis 队列触发 Python worker。
+`/infer` 与 `/mock-infer` 会先检查请求文本或场景类型；当命中 `light / switch / lamp / 开关 / 灯 / 按开关` 且 `video_path` 可访问时，会优先运行灯开关轻量分析，否则回退到原有本地摘要流程并返回 `fallbackReason`。
+
+## 灯开关短视频轻量分析
+
+`app/models/light_switch_analyzer.py` 提供一个可解释的最小真实视觉分析 demo，面向“手臂靠近墙面白色灯开关并按压”的短视频场景。它不会调用外部云 API，也不依赖大模型权重，主要步骤包括：
+
+1. 用 OpenCV 读取视频时长、FPS 和帧数。
+2. 按低帧率采样关键帧。
+3. 用灰度帧差估计动作最明显的时间点。
+4. 比较动作前后平均亮度，给出 `brighter / darker / unchanged` 判断。
+5. 生成克制的中文摘要；证据不足时输出不确定说明。
+
+该能力只适合作为本科毕设演示中的轻量真实识别样例，不代表通用视频理解能力。若视频路径不可访问、采样帧不足或 OpenCV 无法读取，服务会回退到原有 pipeline，并在 `model_info.fallbackReason` 中说明原因。
 
 ## Mock mode 与 Real mode
 
@@ -75,6 +87,7 @@ pytest
 
 - `tests/test_token_compressor.py`：验证 `196 → 5` 双轨 Token 压缩。
 - `tests/test_pipeline.py`：验证完整 mock pipeline 可运行并生成中文摘要。
+- `tests/test_light_switch_analyzer.py`：验证亮度趋势、动作强度计算和视频不可访问时的回退。
 
 ## 后续与 Java/Redis 接入
 

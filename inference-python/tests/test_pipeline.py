@@ -15,5 +15,5 @@ def test_mock_pipeline_runs_end_to_end() -> None:
     assert result.token_metrics.compressed_tokens_per_frame == 5
     assert result.token_metrics.compression_ratio == 196 / 5
     assert result.runtime_metrics.total_ms >= 0
-    assert "196" in result.summary
+    assert "视频内容摘要" in result.summary
     assert len(result.summary_chunks) >= 3

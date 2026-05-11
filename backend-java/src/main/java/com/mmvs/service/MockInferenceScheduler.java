@@ -41,13 +41,13 @@ public class MockInferenceScheduler {
     private void runMockPipeline(String taskId) {
         long started = System.currentTimeMillis();
         try {
-            sendStage(taskId, TaskStatus.WAITING, "waiting", 5, "任务已进入 in-memory mock 队列");
+            sendStage(taskId, TaskStatus.WAITING, "waiting", 5, "任务已进入等待队列");
             sleep(inferenceProperties.getMockStageDelayMs());
 
             sendStage(taskId, TaskStatus.RUNNING, "video_sampling", 18, "正在按 1 FPS 进行视频抽帧");
             sleep(inferenceProperties.getMockStageDelayMs());
 
-            sendStage(taskId, TaskStatus.RUNNING, "video_swin_feature", 35, "Video Swin Transformer 正在提取时空视觉特征");
+            sendStage(taskId, TaskStatus.RUNNING, "video_swin_feature", 35, "正在整理采样帧中的动作变化");
             sleep(inferenceProperties.getMockStageDelayMs());
 
             TokenMetricsDto metrics = buildTokenMetrics(taskId, System.currentTimeMillis() - started);
@@ -55,16 +55,16 @@ public class MockInferenceScheduler {
             sseEmitterService.send(taskId, StreamEvent.tokenMetrics(taskId, "token_compression", metrics));
             sleep(inferenceProperties.getMockStageDelayMs());
 
-            sendStage(taskId, TaskStatus.RUNNING, "content_token", 52, "Content Token 分支保留主体动作和关键事件");
+            sendStage(taskId, TaskStatus.RUNNING, "content_token", 52, "正在保留主体动作和关键事件");
             sleep(inferenceProperties.getMockStageDelayMs());
 
-            sendStage(taskId, TaskStatus.RUNNING, "context_token", 66, "Context Token 分支保留时间上下文和场景关联");
+            sendStage(taskId, TaskStatus.RUNNING, "context_token", 66, "正在整理时间顺序和场景关联");
             sleep(inferenceProperties.getMockStageDelayMs());
 
-            sendStage(taskId, TaskStatus.RUNNING, "mlp_adapter", 78, "MLP Projection Adapter 将视觉 Token 投影到文本语义空间");
+            sendStage(taskId, TaskStatus.RUNNING, "mlp_adapter", 78, "正在组织摘要所需的视觉线索");
             sleep(inferenceProperties.getMockStageDelayMs());
 
-            sendStage(taskId, TaskStatus.STREAMING, "summary_generation", 86, "LLM 摘要生成模块开始流式输出");
+            sendStage(taskId, TaskStatus.STREAMING, "summary_generation", 86, "开始生成摘要文本");
             List<String> deltas = summaryDeltas(taskService.getTask(taskId));
             for (String delta : deltas) {
                 sleep(inferenceProperties.getMockSummaryDelayMs());
@@ -110,21 +110,33 @@ public class MockInferenceScheduler {
     }
 
     private List<String> summaryDeltas(InferenceTask task) {
+        String query = task.getQueryText() == null ? "" : task.getQueryText();
+        if (query.toLowerCase().contains("light")
+                || query.toLowerCase().contains("switch")
+                || query.toLowerCase().contains("lamp")
+                || query.contains("开关")
+                || query.contains("灯")) {
+            return List.of(
+                    "视频内容摘要：画面中可以观察到手部靠近墙面开关，并完成一次按压动作。",
+                    "动作判断：按压动作集中发生在开关位置附近，核心事件较为单一。",
+                    "亮度变化：当前结果未读取原始帧，不能明确判断开灯或关灯。",
+                    "不确定性说明：请以 Python 轻量分析结果或原视频画面作为最终复核依据。"
+            );
+        }
         return List.of(
-                "系统已完成视频抽帧，并从采样帧中识别出主要场景、主体动作和事件变化。",
-                "Video Swin 特征提取阶段生成了时空视觉表示，为后续摘要提供动作与上下文依据。",
-                "双轨 Token 压缩将单帧 196 个 Patch Token 压缩为 5 个视觉 Token，降低了后续生成阶段的输入长度。",
-                "结合用户指令“" + task.getQueryText() + "”，系统生成了包含关键事件、场景变化和结果描述的中文摘要。",
-                "本次任务为 in-memory mock mode，暂未调用 Python 推理服务，但保留 Redis 与真实模型接入边界。"
+                "视频内容摘要：画面中存在连续场景变化，可按开头、主体动作和结果变化进行整理。",
+                "动作判断：采样片段显示主体动作有明显推进，摘要优先保留可见事件。",
+                "关键变化：结合用户指令“" + task.getQueryText() + "”，结果聚焦场景、动作和前后关系。",
+                "不确定性说明：未能从当前链路确认的细节会保持保守表述。"
         );
     }
 
     private List<String> keyEvents() {
         return List.of(
-                "视频抽帧：按 1 FPS 采样关键帧。",
-                "特征提取：模拟 Video Swin Transformer 输出时空视觉特征。",
-                "Token 压缩：Content Token 与 Context Token 共同完成 196 → 5 压缩。",
-                "摘要生成：以 SSE 风格逐句输出中文摘要。"
+                "读取视频文件。",
+                "采样关键帧。",
+                "整理主体动作和场景变化。",
+                "生成中文摘要。"
         );
     }
 

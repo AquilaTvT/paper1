@@ -4,7 +4,7 @@ from app.schemas import TokenMetrics, VideoMetadata
 
 
 class SummaryGenerator:
-    """论文“摘要生成模块”：根据视频元数据、用户指令和 Token 指标生成中文摘要。"""
+    """Generate conservative Chinese video-summary text for the local demo pipeline."""
 
     def stream_generate(
         self,
@@ -12,15 +12,10 @@ class SummaryGenerator:
         query_text: str,
         token_metrics: TokenMetrics,
     ) -> Iterator[str]:
-        yield f"系统读取到视频时长约 {metadata.duration_seconds:.1f} 秒，分辨率为 {metadata.width}×{metadata.height}。"
-        yield "视频主要内容可概括为：画面中存在连续场景变化、主体动作推进以及可用于摘要的关键事件线索。"
-        yield "关键事件包括视频抽帧、时空视觉特征提取、双轨 Token 压缩以及面向用户问题的摘要生成。"
-        yield f"针对用户指令“{query_text}”，系统重点保留与场景、动作、上下文关联最强的信息。"
-        yield (
-            "处理指标显示，单帧视觉 Patch Token 从 "
-            f"{token_metrics.raw_patch_tokens_per_frame} 个压缩到 {token_metrics.compressed_tokens_per_frame} 个，"
-            f"总视觉 Token 从 {token_metrics.raw_visual_tokens} 降至 {token_metrics.compressed_visual_tokens}。"
-        )
+        yield f"视频内容摘要：视频时长约 {metadata.duration_seconds:.1f} 秒，画面可按开头、主体动作和结果变化进行整理。"
+        yield "动作判断：采样片段显示画面中存在连续变化，摘要优先描述可见主体、物体位置与动作顺序。"
+        yield f"关注重点：根据用户指令“{query_text}”，结果会优先保留与问题直接相关的场景和事件。"
+        yield "不确定性说明：当前链路只给出轻量分析结果，无法确认的细节会保持保守表述。"
 
     def generate(self, metadata: VideoMetadata, query_text: str, token_metrics: TokenMetrics) -> tuple[str, list[str]]:
         chunks = list(self.stream_generate(metadata, query_text, token_metrics))

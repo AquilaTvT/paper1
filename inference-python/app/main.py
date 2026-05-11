@@ -21,9 +21,9 @@ def health() -> dict[str, object]:
 
 @app.post("/infer", response_model=InferenceResult)
 def infer(request: InferenceRequest) -> InferenceResult:
-    return pipeline.run(request.task_id, request.video_path, request.query_text)
+    return pipeline.run(request.task_id, request.video_path, request.query_text, request.scenario_type)
 
 
 @app.post("/mock-infer", response_model=InferenceResult)
 def mock_infer(request: InferenceRequest) -> InferenceResult:
-    return pipeline.run(request.task_id, request.video_path, request.query_text)
+    return pipeline.run(request.task_id, request.video_path, request.query_text, request.scenario_type)

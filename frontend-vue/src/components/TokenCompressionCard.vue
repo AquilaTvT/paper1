@@ -3,7 +3,7 @@
     <div class="card-heading">
       <div>
         <h2>双轨 Token 压缩指标</h2>
-        <p>论文核心指标：单帧视觉 Patch Token 从 196 压缩到 5，结构清晰适合论文截图。</p>
+        <p>单帧视觉 Patch Token 从 196 压缩到 5，用于展示摘要生成前的视觉信息压缩效果。</p>
       </div>
       <strong>{{ metrics.compressionText }}</strong>
     </div>

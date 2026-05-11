@@ -29,6 +29,24 @@ interface BackendTaskResponse {
   finishedAt?: string;
 }
 
+interface LightSwitchAnalysis {
+  scenarioType?: string;
+  motionDetected?: boolean;
+  brightnessTrend?: 'brighter' | 'darker' | 'unchanged';
+  operationGuess?: 'turn_on' | 'turn_off' | 'press_only' | 'unknown';
+  brightnessDelta?: number;
+  confidence?: number;
+}
+
+interface BackendCompletedPayload {
+  summary?: string;
+  keyEvents?: string[];
+  estimatedLatencyMs?: number;
+  scenarioType?: string;
+  lightSwitchAnalysis?: LightSwitchAnalysis;
+  fallbackReason?: string;
+}
+
 interface BackendStreamEvent {
   taskId: string;
   eventType: string;
@@ -36,7 +54,7 @@ interface BackendStreamEvent {
   stage?: string;
   tokenMetrics?: BackendTaskResponse['tokenMetrics'];
   summaryDelta?: string;
-  completed?: { summary?: string; keyEvents?: string[]; estimatedLatencyMs?: number };
+  completed?: BackendCompletedPayload;
   error?: string;
 }
 
@@ -57,6 +75,20 @@ function updateStages(stages: PipelineStage[], currentStage: PipelineStageKey): 
     if (stage.key === currentStage) return { ...stage, status: 'active', detail: '来自 Java SSE / Redis Stream 的实时事件。' };
     return { ...stage, status: 'pending' };
   });
+}
+
+function lightSwitchConclusion(completed: BackendCompletedPayload): string {
+  if (completed.fallbackReason) {
+    return '后端已回退到常规摘要流程，轻量视觉分析未运行。';
+  }
+  if (completed.scenarioType !== 'light_switch_demo' || !completed.lightSwitchAnalysis) {
+    return '后端任务已完成。';
+  }
+  const analysis = completed.lightSwitchAnalysis;
+  if (analysis.operationGuess === 'turn_on') return '检测到开关按压动作，亮度上升判断为谨慎推测。';
+  if (analysis.operationGuess === 'turn_off') return '检测到开关按压动作，亮度下降判断为谨慎推测。';
+  if (analysis.motionDetected) return '检测到开关按压动作，但亮度变化不足以判断开灯或关灯。';
+  return '画面证据较弱，需结合原视频复核。';
 }
 
 function metricsFromBackend(metrics: BackendTaskResponse['tokenMetrics'], durationSeconds: number) {
@@ -160,7 +192,7 @@ export function useBackendInferenceTask(onFinished: (task: InferenceTask) => voi
         progress: 100,
         stages: currentTask.value.stages.map((stage) => ({ ...stage, status: 'done' })),
         runtimeMetrics: { ...currentTask.value.runtimeMetrics, totalMs: event.completed.estimatedLatencyMs ?? 0 },
-        result: { summary: event.completed.summary ?? '', keyEvents: event.completed.keyEvents ?? [], conclusion: 'Redis 全链路联调任务完成。' },
+        result: { summary: event.completed.summary ?? '', keyEvents: event.completed.keyEvents ?? [], conclusion: lightSwitchConclusion(event.completed) },
         updatedAt: finishedAt,
         finishedAt,
       };
