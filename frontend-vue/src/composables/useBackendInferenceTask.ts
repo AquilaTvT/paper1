@@ -185,14 +185,19 @@ export function useBackendInferenceTask(onFinished: (task: InferenceTask) => voi
 
     if (event.completed) {
       const finishedAt = new Date().toISOString();
+      const summary = event.completed.summary ?? '';
+      const streamChunks = currentTask.value.streamChunks.length > 0 || !summary
+        ? currentTask.value.streamChunks
+        : [{ id: `chunk-${crypto.randomUUID()}`, text: summary, createdAt: finishedAt }];
       currentTask.value = {
         ...currentTask.value,
         status: 'finished',
         currentStage: 'finished',
         progress: 100,
         stages: currentTask.value.stages.map((stage) => ({ ...stage, status: 'done' })),
+        streamChunks,
         runtimeMetrics: { ...currentTask.value.runtimeMetrics, totalMs: event.completed.estimatedLatencyMs ?? 0 },
-        result: { summary: event.completed.summary ?? '', keyEvents: event.completed.keyEvents ?? [], conclusion: lightSwitchConclusion(event.completed) },
+        result: { summary, keyEvents: event.completed.keyEvents ?? [], conclusion: lightSwitchConclusion(event.completed) },
         updatedAt: finishedAt,
         finishedAt,
       };

@@ -4,13 +4,17 @@ import com.mmvs.dto.ApiResponse;
 import com.mmvs.dto.CreateTaskRequest;
 import com.mmvs.dto.StreamEvent;
 import com.mmvs.dto.TaskResponse;
+import com.mmvs.model.InferenceResult;
 import com.mmvs.model.InferenceTask;
+import com.mmvs.model.TaskStatus;
 import com.mmvs.service.TaskDispatchService;
 import com.mmvs.service.SseEmitterService;
 import com.mmvs.service.TaskService;
 import com.mmvs.util.IdGenerator;
 import jakarta.validation.Valid;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,9 +70,42 @@ public class TaskController {
             emitter.send(SseEmitter.event()
                     .name("status")
                     .data(StreamEvent.status(taskId, task.getStatus().getValue(), task.getCurrentStage())));
+            if (task.getTokenMetrics() != null) {
+                emitter.send(SseEmitter.event()
+                        .name("token_metrics")
+                        .data(StreamEvent.tokenMetrics(taskId, "token_compression", task.getTokenMetrics())));
+            }
+            if (task.getStatus() == TaskStatus.FAILED) {
+                emitter.send(SseEmitter.event()
+                        .name("error")
+                        .data(StreamEvent.error(taskId, task.getCurrentStage(), task.getErrorMessage())));
+            }
+            if (task.getStatus() == TaskStatus.FINISHED && task.getResult() != null) {
+                emitter.send(SseEmitter.event()
+                        .name("completed")
+                        .data(StreamEvent.completed(taskId, completedPayload(task.getResult()))));
+            }
         } catch (Exception ignored) {
             emitter.complete();
         }
         return emitter;
     }
+
+    private Map<String, Object> completedPayload(InferenceResult result) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("summary", result.getSummary());
+        payload.put("keyEvents", result.getKeyEvents());
+        payload.put("estimatedLatencyMs", result.getEstimatedLatencyMs());
+        if (result.getScenarioType() != null && !result.getScenarioType().isBlank()) {
+            payload.put("scenarioType", result.getScenarioType());
+        }
+        if (result.getLightSwitchAnalysis() != null && !result.getLightSwitchAnalysis().isEmpty()) {
+            payload.put("lightSwitchAnalysis", result.getLightSwitchAnalysis());
+        }
+        if (result.getFallbackReason() != null && !result.getFallbackReason().isBlank()) {
+            payload.put("fallbackReason", result.getFallbackReason());
+        }
+        return payload;
+    }
+
 }

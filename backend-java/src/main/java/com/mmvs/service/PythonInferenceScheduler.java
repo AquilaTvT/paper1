@@ -81,7 +81,8 @@ public class PythonInferenceScheduler {
             List<String> keyEvents = textList(response.path("key_events"));
             long elapsed = runtimeTotal(response.path("runtime_metrics"), System.currentTimeMillis() - started);
             InferenceResult result = taskService.completeTask(taskId, textValue(response.path("summary"), String.join("", chunks)), keyEvents, elapsed);
-            sseEmitterService.send(taskId, StreamEvent.completed(taskId, completedPayload(response, result)));
+            Map<String, Object> completed = completedPayload(response, result);
+            sseEmitterService.send(taskId, StreamEvent.completed(taskId, completed));
             sseEmitterService.complete(taskId);
         } catch (Exception exception) {
             String message = "Python 分析服务未连接或返回异常，请先运行一键启动脚本或检查 http://localhost:8000/health。";
@@ -147,11 +148,15 @@ public class PythonInferenceScheduler {
         payload.put("estimatedLatencyMs", result.getEstimatedLatencyMs());
         JsonNode analysis = response.path("light_switch_analysis");
         if (!analysis.isMissingNode() && !analysis.isNull()) {
+            Map<String, Object> analysisPayload = objectMapper.convertValue(analysis, Map.class);
+            result.setScenarioType("light_switch_demo");
+            result.setLightSwitchAnalysis(analysisPayload);
             payload.put("scenarioType", "light_switch_demo");
-            payload.put("lightSwitchAnalysis", objectMapper.convertValue(analysis, Map.class));
+            payload.put("lightSwitchAnalysis", analysisPayload);
         }
         JsonNode fallbackReason = response.path("model_info").path("fallbackReason");
         if (!fallbackReason.isMissingNode() && !fallbackReason.asText().isBlank()) {
+            result.setFallbackReason(fallbackReason.asText());
             payload.put("fallbackReason", fallbackReason.asText());
         }
         return payload;

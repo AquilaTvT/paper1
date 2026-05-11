@@ -3,6 +3,7 @@ package com.mmvs.dto;
 import com.mmvs.model.InferenceResult;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 public record ResultResponse(
         String resultId,
@@ -11,6 +12,9 @@ public record ResultResponse(
         List<String> keyEvents,
         TokenMetricsDto tokenMetrics,
         long estimatedLatencyMs,
+        String scenarioType,
+        Map<String, Object> lightSwitchAnalysis,
+        String fallbackReason,
         Instant createdAt
 ) {
 
@@ -22,6 +26,9 @@ public record ResultResponse(
                 result.getKeyEvents(),
                 result.getTokenMetrics(),
                 result.getEstimatedLatencyMs(),
+                result.getScenarioType(),
+                result.getLightSwitchAnalysis(),
+                result.getFallbackReason(),
                 result.getCreatedAt()
         );
     }

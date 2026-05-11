@@ -4,6 +4,7 @@ import com.mmvs.dto.TokenMetricsDto;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class InferenceResult {
 
@@ -13,6 +14,9 @@ public class InferenceResult {
     private List<String> keyEvents = new ArrayList<>();
     private TokenMetricsDto tokenMetrics;
     private long estimatedLatencyMs;
+    private String scenarioType;
+    private Map<String, Object> lightSwitchAnalysis;
+    private String fallbackReason;
     private Instant createdAt;
 
     public String getResultId() {
@@ -61,6 +65,30 @@ public class InferenceResult {
 
     public void setEstimatedLatencyMs(long estimatedLatencyMs) {
         this.estimatedLatencyMs = estimatedLatencyMs;
+    }
+
+    public String getScenarioType() {
+        return scenarioType;
+    }
+
+    public void setScenarioType(String scenarioType) {
+        this.scenarioType = scenarioType;
+    }
+
+    public Map<String, Object> getLightSwitchAnalysis() {
+        return lightSwitchAnalysis;
+    }
+
+    public void setLightSwitchAnalysis(Map<String, Object> lightSwitchAnalysis) {
+        this.lightSwitchAnalysis = lightSwitchAnalysis;
+    }
+
+    public String getFallbackReason() {
+        return fallbackReason;
+    }
+
+    public void setFallbackReason(String fallbackReason) {
+        this.fallbackReason = fallbackReason;
     }
 
     public Instant getCreatedAt() {
