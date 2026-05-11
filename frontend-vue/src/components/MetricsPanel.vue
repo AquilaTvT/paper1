@@ -2,8 +2,8 @@
   <section class="card metrics-panel">
     <div class="card-heading">
       <div>
-        <h2>测试指标卡片</h2>
-        <p>用于论文第七章系统测试和答辩 PPT 展示。</p>
+        <h2>运行指标</h2>
+        <p>展示当前任务进度、耗时与摘要压缩相关指标。</p>
       </div>
     </div>
 

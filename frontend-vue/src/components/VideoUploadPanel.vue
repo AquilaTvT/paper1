@@ -3,55 +3,64 @@
     <div class="section-title">
       <span class="step-index">01</span>
       <div>
-        <h2>视频上传模块</h2>
-        <p v-if="apiMode === 'backend'">当前为 <strong>BACKEND MODE</strong>：文件会上传到 Java 后端，并由后端生成 videoId。</p>
-        <p v-else>当前为 <strong>MOCK MODE</strong>：本地视频仅读取浏览器可获得的文件名、大小、格式和时长元数据。</p>
+        <h2>视频上传</h2>
+        <p>选择本地视频后，可立即在浏览器中预览并读取基础信息。</p>
       </div>
+      <span class="subtle-tag">{{ analysisMode === 'formal' ? '正式分析' : '本地演示' }}</span>
     </div>
 
     <div class="mode-notice">
-      <strong>{{ apiMode === 'backend' ? 'Backend mode 边界说明' : 'Mock mode 边界说明' }}</strong>
-      <p v-if="apiMode === 'backend'">backend mode 会把文件上传到本地 Java 后端用于演示链路；默认仍使用 mock/in-memory 或 Redis mock 推理结果，除非单独接入真实模型权重。</p>
-      <p v-else>此模式不会读取本地文件路径，也不会把文件内容上传到第三方服务；摘要来自样例场景、用户指令和系统指标，不代表真实画面识别。</p>
+      <strong>预览与理解</strong>
+      <p>{{ analysisMode === 'formal' ? '本地预览由浏览器完成；开始分析后会提交视频并返回分析结果。' : '本地预览只说明文件可播放；摘要结果基于样例场景与基础元数据生成。' }}</p>
     </div>
 
     <label class="upload-dropzone">
       <input type="file" accept="video/*" @change="handleFileChange" />
-      <span class="upload-icon">▣</span>
-      <strong>选择视频文件</strong>
-      <small>支持 MP4、MOV、AVI、MKV；选择后将读取 fileName、fileSize、fileType 与 duration 元数据。</small>
+      <span class="upload-icon">□</span>
+      <strong>{{ video ? '重新选择视频' : '选择视频文件' }}</strong>
+      <small>支持 MP4、MOV、AVI、MKV；选择后显示文件名、大小、类型与时长。</small>
     </label>
 
     <button class="secondary-button" type="button" @click="$emit('use-sample')">使用示例视频</button>
 
-    <div v-if="video" class="video-meta">
-      <h3>当前视频元数据</h3>
-      <dl>
-        <div>
-          <dt>fileName</dt>
-          <dd>{{ video.name }}</dd>
-        </div>
-        <div>
-          <dt>fileSize</dt>
-          <dd>{{ formatBytes(video.sizeBytes) }}</dd>
-        </div>
-        <div>
-          <dt>fileType</dt>
-          <dd>{{ video.fileType || '未知格式' }}</dd>
-        </div>
-        <div>
-          <dt>duration</dt>
-          <dd>{{ formatDuration(video.durationSeconds, video.durationReadable !== false) }}</dd>
-        </div>
-        <div>
-          <dt>来源</dt>
-          <dd>{{ video.source === 'sample' ? '示例视频' : '本地上传' }}</dd>
-        </div>
-        <div>
-          <dt>语义理解状态</dt>
-          <dd>Mock 摘要，不代表真实画面识别</dd>
-        </div>
-      </dl>
+    <div v-if="video" class="video-preview-card">
+      <div v-if="video.objectUrl" class="video-player-shell">
+        <video :src="video.objectUrl" controls preload="metadata"></video>
+      </div>
+      <div v-else class="sample-preview-placeholder">
+        <strong>示例视频预览</strong>
+        <p>示例用于快速体验摘要流程；上传本地文件后会显示可播放的视频播放器。</p>
+      </div>
+
+      <div class="video-meta">
+        <h3>视频信息</h3>
+        <dl>
+          <div>
+            <dt>文件名</dt>
+            <dd>{{ video.name }}</dd>
+          </div>
+          <div>
+            <dt>文件大小</dt>
+            <dd>{{ formatBytes(video.sizeBytes) }}</dd>
+          </div>
+          <div>
+            <dt>文件类型</dt>
+            <dd>{{ video.fileType || '未知格式' }}</dd>
+          </div>
+          <div>
+            <dt>时长</dt>
+            <dd>{{ formatDuration(video.durationSeconds, video.durationReadable !== false) }}</dd>
+          </div>
+          <div>
+            <dt>来源</dt>
+            <dd>{{ video.source === 'sample' ? '示例视频' : '本地上传' }}</dd>
+          </div>
+          <div>
+            <dt>摘要依据</dt>
+            <dd>{{ analysisMode === 'formal' ? '正式分析结果' : '样例场景与元数据' }}</dd>
+          </div>
+        </dl>
+      </div>
     </div>
   </section>
 </template>
@@ -67,7 +76,7 @@ const emit = defineEmits<{
 
 defineProps<{
   video: VideoFileInfo | null;
-  apiMode: 'mock' | 'backend';
+  analysisMode: 'local' | 'formal';
 }>();
 
 function fallbackDuration(file: File) {
@@ -102,6 +111,7 @@ async function handleFileChange(event: Event) {
   if (file) {
     const metadata = await readVideoDuration(file);
     emit('file-selected', file, metadata);
+    input.value = '';
   }
 }
 </script>

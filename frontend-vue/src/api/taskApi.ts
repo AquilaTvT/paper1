@@ -49,3 +49,27 @@ export function getTasks(): Promise<ApiResponse<TaskListResponse>> {
 export function getTask(taskId: string): Promise<ApiResponse<InferenceTask>> {
   return request<InferenceTask>(`/tasks/${taskId}`);
 }
+
+
+export async function checkJavaHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/health`, { cache: 'no-store' });
+    if (!response.ok) return false;
+    const payload = await response.json();
+    return Boolean(payload?.success ?? payload?.status === 'up');
+  } catch {
+    return false;
+  }
+}
+
+export async function checkPythonHealth(): Promise<boolean> {
+  const pythonBase = import.meta.env.VITE_PYTHON_HEALTH_URL || 'http://localhost:8000/health';
+  try {
+    const response = await fetch(pythonBase, { cache: 'no-store' });
+    if (!response.ok) return false;
+    const payload = await response.json();
+    return payload?.status === 'up';
+  } catch {
+    return false;
+  }
+}

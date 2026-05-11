@@ -1,14 +1,14 @@
 <template>
   <header class="app-header">
     <div>
-      <p class="eyebrow">本科毕业设计 · MOCK MODE 明示</p>
+      <p class="eyebrow">本地演示</p>
       <h1>多模态视频理解与摘要系统</h1>
-      <p class="subtitle">黑白灰学术展示风格，保留视频上传、异步任务、SSE 流式摘要、历史记录与 196 → 5 Token 压缩指标；mock mode 仅用于演示，不暗示真实理解上传视频画面。</p>
+      <p class="subtitle">面向短视频内容的上传、处理进度追踪与摘要生成。页面保留必要指标与历史记录，结果以克制、可复核的方式呈现。</p>
     </div>
     <div class="header-badges">
-      <span>Vue 3 + Vite + TypeScript</span>
-      <span>Java Spring Boot / Redis Ready</span>
-      <span>backend mode 对接 inference-python</span>
+      <span>视频上传</span>
+      <span>任务时间线</span>
+      <span>流式摘要</span>
     </div>
   </header>
 </template>

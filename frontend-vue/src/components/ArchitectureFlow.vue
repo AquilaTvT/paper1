@@ -2,30 +2,30 @@
   <section class="card architecture-card">
     <div class="card-heading">
       <div>
-        <h2>系统架构流程图</h2>
-        <p>对应论文总体设计：前后端分离、业务层与计算层分离。</p>
+        <h2>处理流程</h2>
+        <p>从视频上传到摘要输出，各环节保持清晰可追踪。</p>
       </div>
     </div>
 
     <div class="flow-grid">
       <div class="flow-node frontend">
-        <strong>Vue 前端</strong>
-        <span>上传、指令、SSE 展示</span>
+        <strong>前端页面</strong>
+        <span>上传、预览、输入指令</span>
       </div>
-      <div class="flow-arrow">REST / SSE</div>
+      <div class="flow-arrow">任务提交</div>
       <div class="flow-node backend">
-        <strong>Java Spring Boot</strong>
-        <span>任务管理、状态查询、SSE 转发</span>
+        <strong>任务服务</strong>
+        <span>创建任务、维护状态</span>
       </div>
-      <div class="flow-arrow">Redis Stream</div>
+      <div class="flow-arrow">队列</div>
       <div class="flow-node redis">
-        <strong>Redis</strong>
-        <span>队列、状态缓存、流式消息中转</span>
+        <strong>状态与消息</strong>
+        <span>进度记录、结果缓存</span>
       </div>
-      <div class="flow-arrow">异步消费</div>
+      <div class="flow-arrow">回传</div>
       <div class="flow-node inference">
-        <strong>Python FastAPI</strong>
-        <span>Video Swin、Token 压缩、MLP Adapter、LLM</span>
+        <strong>摘要生成</strong>
+        <span>采样、分析、组织文本</span>
       </div>
     </div>
   </section>

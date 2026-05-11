@@ -4,22 +4,22 @@
       <span class="step-index">02</span>
       <div>
         <h2>用户指令输入</h2>
-        <p>输入摘要、问答或测试分析指令，创建异步推理任务。</p>
+        <p>输入摘要或问答指令，然后开始分析。</p>
       </div>
     </div>
 
     <textarea
       :value="modelValue"
       rows="6"
-      placeholder="例如：请总结视频中的关键事件，并说明 Token 压缩效果。"
+      placeholder="例如：请判断视频中是否有人按下灯的开关，以及按下后亮度是否变化。"
       @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
     />
 
     <div class="prompt-actions">
       <button class="primary-button" type="button" :disabled="disabled" @click="$emit('create-task')">
-        创建 mock 推理任务
+        开始分析
       </button>
-      <p>默认走完整链路：waiting → running → streaming → finished。</p>
+      <p>{{ hint }}</p>
     </div>
   </section>
 </template>
@@ -30,8 +30,11 @@ defineEmits<{
   'create-task': [];
 }>();
 
-defineProps<{
+withDefaults(defineProps<{
   modelValue: string;
   disabled: boolean;
-}>();
+  hint?: string;
+}>(), {
+  hint: '任务会按进度更新，并输出分析结果。',
+});
 </script>

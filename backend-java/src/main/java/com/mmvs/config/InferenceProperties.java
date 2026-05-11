@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "mmvs.inference")
 public class InferenceProperties {
 
-    private String mode = "in-memory";
+    private String mode = "python";
     private long mockStageDelayMs = 700L;
     private long mockSummaryDelayMs = 650L;
     private int frameSampleRate = 1;
@@ -15,6 +15,7 @@ public class InferenceProperties {
     private String redisTaskStream = "mmvs:tasks:requests";
     private String redisEventStream = "mmvs:tasks:events";
     private boolean h2JpaEnabled = false;
+    private String pythonBaseUrl = "http://localhost:8000";
 
     public String getMode() {
         return mode;
@@ -76,6 +77,10 @@ public class InferenceProperties {
         return redisEnabled || "redis".equalsIgnoreCase(mode);
     }
 
+    public boolean isPythonMode() {
+        return "python".equalsIgnoreCase(mode) || "formal".equalsIgnoreCase(mode);
+    }
+
     public String getRedisTaskStream() {
         return redisTaskStream;
     }
@@ -90,6 +95,14 @@ public class InferenceProperties {
 
     public void setRedisEventStream(String redisEventStream) {
         this.redisEventStream = redisEventStream;
+    }
+
+    public String getPythonBaseUrl() {
+        return pythonBaseUrl;
+    }
+
+    public void setPythonBaseUrl(String pythonBaseUrl) {
+        this.pythonBaseUrl = pythonBaseUrl;
     }
 
     public boolean isH2JpaEnabled() {
