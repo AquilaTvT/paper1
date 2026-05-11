@@ -2,8 +2,8 @@
   <section class="card timeline-card">
     <div class="card-heading">
       <div>
-        <h2>任务状态时间线</h2>
-        <p>模拟 Redis 队列、Python worker 和 SSE 消息回传的阶段变化。</p>
+        <h2>处理进度</h2>
+        <p>按阶段展示从视频读取到摘要生成的进度变化。</p>
       </div>
       <span class="status-pill" :class="task?.status || 'idle'">{{ statusText }}</span>
     </div>
@@ -37,13 +37,13 @@ const stages = computed(() => props.task?.stages ?? createInitialStages());
 const statusText = computed(() => {
   const status = props.task?.status ?? 'idle';
   const map = {
-    idle: '未创建',
-    waiting: 'waiting',
-    running: 'running',
-    streaming: 'streaming',
-    finished: 'finished',
-    failed: 'failed',
-    cancelled: 'cancelled',
+    idle: '未开始',
+    waiting: '等待中',
+    running: '处理中',
+    streaming: '生成中',
+    finished: '已完成',
+    failed: '失败',
+    cancelled: '已取消',
   };
   return map[status];
 });

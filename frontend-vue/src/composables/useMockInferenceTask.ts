@@ -100,7 +100,7 @@ export function useMockInferenceTask(onFinished: (task: InferenceTask) => void) 
         }
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'mock 推理流程发生未知错误。';
+      const message = error instanceof Error ? error.message : '本地摘要流程发生未知错误。';
       markStreamError(message);
       errorMessage.value = message;
       if (currentTask.value) {

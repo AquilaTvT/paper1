@@ -4,7 +4,7 @@
       <span class="step-index">02</span>
       <div>
         <h2>用户指令输入</h2>
-        <p>输入摘要、问答或测试分析指令，创建异步推理任务。</p>
+        <p>输入摘要或问答指令，创建视频处理任务。</p>
       </div>
     </div>
 
@@ -17,9 +17,9 @@
 
     <div class="prompt-actions">
       <button class="primary-button" type="button" :disabled="disabled" @click="$emit('create-task')">
-        创建 mock 推理任务
+        生成摘要
       </button>
-      <p>默认走完整链路：waiting → running → streaming → finished。</p>
+      <p>任务会按进度阶段更新，并在右侧输出摘要。</p>
     </div>
   </section>
 </template>
