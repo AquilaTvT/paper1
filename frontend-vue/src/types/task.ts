@@ -12,11 +12,20 @@ export type PipelineStageKey =
   | 'llm_generation'
   | 'finished';
 
+
+export interface LocalVideoMetadata {
+  durationSeconds: number;
+  durationReadable: boolean;
+  fileType: string;
+}
+
 export interface VideoFileInfo {
   videoId: string;
   name: string;
   sizeBytes: number;
+  fileType?: string;
   durationSeconds: number;
+  durationReadable?: boolean;
   source: 'upload' | 'sample';
   objectUrl?: string;
   createdAt: string;

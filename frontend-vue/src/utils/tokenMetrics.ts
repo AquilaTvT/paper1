@@ -2,8 +2,8 @@ import type { TokenMetrics } from '../types/metrics';
 
 const RAW_PATCH_TOKENS_PER_FRAME = 196;
 const COMPRESSED_TOKENS_PER_FRAME = 5;
-const CONTENT_TOKENS_PER_FRAME = 3;
-const CONTEXT_TOKENS_PER_FRAME = 2;
+const CONTENT_TOKENS_PER_FRAME = 1;
+const CONTEXT_TOKENS_PER_FRAME = 4;
 const FRAME_SAMPLE_RATE = 1;
 
 export function createTokenMetrics(durationSeconds: number): TokenMetrics {

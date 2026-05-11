@@ -42,7 +42,7 @@ export function useMockInferenceTask(onFinished: (task: InferenceTask) => void) 
     currentTask.value = task;
 
     try {
-      await runMockInference((event) => {
+      await runMockInference(input, (event) => {
         if (signal.aborted || !currentTask.value) return;
 
         const updatedAt = new Date().toISOString();

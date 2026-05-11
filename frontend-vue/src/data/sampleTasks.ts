@@ -5,7 +5,9 @@ export const sampleVideo: VideoFileInfo = {
   videoId: 'sample-video-001',
   name: '毕业设计演示样例视频.mp4',
   sizeBytes: 18_600_000,
+  fileType: 'video/mp4',
   durationSeconds: 32,
+  durationReadable: true,
   source: 'sample',
   createdAt: new Date().toISOString(),
 };
@@ -74,7 +76,7 @@ export const sampleFinishedTask: InferenceTask = {
   streamChunks: [
     {
       id: 'sample-chunk-1',
-      text: '样例任务展示了视频抽帧、特征提取、Token 压缩和摘要生成的完整链路。',
+      text: '视频整体内容概括：该样例展示毕业设计系统的视频选择、任务状态、流式摘要和 196 → 5 Token 压缩指标。',
       createdAt: new Date().toISOString(),
     },
   ],
@@ -88,7 +90,7 @@ export const sampleFinishedTask: InferenceTask = {
     totalMs: 1766,
   },
   result: {
-    summary: '样例任务展示了视频抽帧、特征提取、Token 压缩和摘要生成的完整链路。',
+    summary: '视频整体内容概括：该样例展示毕业设计系统的视频选择、任务状态、流式摘要和 196 → 5 Token 压缩指标。',
     keyEvents: ['完成视频抽帧', '执行 Video Swin 特征提取', '展示 196 → 5 Token 压缩指标'],
     conclusion: '该结果可用于论文第六章界面截图和第七章测试分析。',
   },

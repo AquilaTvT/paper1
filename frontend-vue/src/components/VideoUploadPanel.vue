@@ -4,37 +4,50 @@
       <span class="step-index">01</span>
       <div>
         <h2>视频上传模块</h2>
-        <p>选择本地视频或使用样例视频，后续将对接 POST /api/videos/upload。</p>
+        <p>当前为 <strong>MOCK MODE</strong>：本地视频仅读取浏览器可获得的文件名、大小、格式和时长元数据。</p>
       </div>
+    </div>
+
+    <div class="mode-notice">
+      <strong>Mock mode 边界说明</strong>
+      <p>此模式不会读取本地文件路径，也不会把文件内容上传到第三方服务；摘要来自样例场景、用户指令和系统指标。真实视频语义理解需要切换 backend mode，并由 inference-python 解码视频帧。</p>
     </div>
 
     <label class="upload-dropzone">
       <input type="file" accept="video/*" @change="handleFileChange" />
-      <span class="upload-icon">🎞️</span>
+      <span class="upload-icon">▣</span>
       <strong>选择视频文件</strong>
-      <small>支持 MP4、MOV、AVI、MKV，当前阶段使用浏览器 mock 元数据。</small>
+      <small>支持 MP4、MOV、AVI、MKV；选择后将读取 fileName、fileSize、fileType 与 duration 元数据。</small>
     </label>
 
     <button class="secondary-button" type="button" @click="$emit('use-sample')">使用示例视频</button>
 
     <div v-if="video" class="video-meta">
-      <h3>当前视频</h3>
+      <h3>当前视频元数据</h3>
       <dl>
         <div>
-          <dt>文件名</dt>
+          <dt>fileName</dt>
           <dd>{{ video.name }}</dd>
         </div>
         <div>
-          <dt>大小</dt>
+          <dt>fileSize</dt>
           <dd>{{ formatBytes(video.sizeBytes) }}</dd>
         </div>
         <div>
-          <dt>估算时长</dt>
-          <dd>{{ formatDuration(video.durationSeconds) }}</dd>
+          <dt>fileType</dt>
+          <dd>{{ video.fileType || '未知格式' }}</dd>
+        </div>
+        <div>
+          <dt>duration</dt>
+          <dd>{{ formatDuration(video.durationSeconds, video.durationReadable !== false) }}</dd>
         </div>
         <div>
           <dt>来源</dt>
           <dd>{{ video.source === 'sample' ? '示例视频' : '本地上传' }}</dd>
+        </div>
+        <div>
+          <dt>语义理解状态</dt>
+          <dd>Mock 摘要，不代表真实画面识别</dd>
         </div>
       </dl>
     </div>
@@ -42,11 +55,11 @@
 </template>
 
 <script setup lang="ts">
-import type { VideoFileInfo } from '../types/task';
+import type { LocalVideoMetadata, VideoFileInfo } from '../types/task';
 import { formatBytes, formatDuration } from '../utils/format';
 
 const emit = defineEmits<{
-  'file-selected': [file: File];
+  'file-selected': [file: File, metadata: LocalVideoMetadata];
   'use-sample': [];
 }>();
 
@@ -54,11 +67,38 @@ defineProps<{
   video: VideoFileInfo | null;
 }>();
 
-function handleFileChange(event: Event) {
+function fallbackDuration(file: File) {
+  return Math.max(12, Math.min(180, Math.round(file.size / 560_000)));
+}
+
+function readVideoDuration(file: File): Promise<LocalVideoMetadata> {
+  return new Promise((resolve) => {
+    const objectUrl = URL.createObjectURL(file);
+    const video = document.createElement('video');
+
+    const settle = (metadata: LocalVideoMetadata) => {
+      URL.revokeObjectURL(objectUrl);
+      video.removeAttribute('src');
+      video.load();
+      resolve(metadata);
+    };
+
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      const duration = Number.isFinite(video.duration) && video.duration > 0 ? Math.round(video.duration) : fallbackDuration(file);
+      settle({ durationSeconds: duration, durationReadable: Number.isFinite(video.duration) && video.duration > 0, fileType: file.type || '未知格式' });
+    };
+    video.onerror = () => settle({ durationSeconds: fallbackDuration(file), durationReadable: false, fileType: file.type || '未知格式' });
+    video.src = objectUrl;
+  });
+}
+
+async function handleFileChange(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
   if (file) {
-    emit('file-selected', file);
+    const metadata = await readVideoDuration(file);
+    emit('file-selected', file, metadata);
   }
 }
 </script>
