@@ -2,19 +2,19 @@
   <section class="card streaming-card">
     <div class="card-heading">
       <div>
-        <h2>SSE 流式摘要输出</h2>
-        <p>摘要优先呈现内容概括与关键事件；mock mode 会明确标注演示边界。</p>
+        <h2>流式摘要结果</h2>
+        <p>摘要按句输出，优先呈现画面内容、动作变化与关键事件。</p>
       </div>
-      <span class="live-dot" :class="{ active: isStreaming }">{{ isStreaming ? '流式输出中' : '等待输出' }}</span>
+      <span class="live-dot" :class="{ active: isStreaming }">{{ isStreaming ? '生成中' : '等待结果' }}</span>
     </div>
 
     <div class="terminal-window">
       <div class="terminal-bar">
         <span></span><span></span><span></span>
-        <em>text/event-stream</em>
+        <em>summary stream</em>
       </div>
       <div class="terminal-content">
-        <p v-if="chunks.length === 0" class="placeholder">创建任务后，这里将逐句显示结构化摘要结果，前半部分为内容摘要，后半部分为系统处理说明。</p>
+        <p v-if="chunks.length === 0" class="placeholder">创建任务后，这里将逐句显示视频摘要与关键事件。</p>
         <p v-for="chunk in chunks" :key="chunk.id" class="stream-line">
           <span>{{ formatTime(chunk.createdAt) }}</span>
           {{ chunk.text }}

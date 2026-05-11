@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { createVideoFromFile } from '../api/mockApi';
 import { uploadVideo } from '../api/taskApi';
 import AppHeader from '../components/AppHeader.vue';
@@ -45,7 +45,7 @@ import type { LocalVideoMetadata, VideoFileInfo } from '../types/task';
 import { createTokenMetrics } from '../utils/tokenMetrics';
 
 const selectedVideo = ref<VideoFileInfo | null>(sampleVideo);
-const instruction = ref('请总结视频中的关键事件，并说明 196 → 5 Token 压缩效果。');
+const instruction = ref('请总结视频中的关键事件，重点关注人物动作和场景变化。');
 const apiMode = import.meta.env.VITE_API_MODE === 'backend' ? 'backend' : 'mock';
 const { history, finishedCount, addTask, clearHistory } = useLocalHistory();
 const mockTask = useMockInferenceTask(addTask);
@@ -56,9 +56,15 @@ const { currentTask, errorMessage, isStreaming, streamError, canCreateTask, crea
 const activeMetrics = computed(() => currentTask.value?.tokenMetrics ?? createTokenMetrics(selectedVideo.value?.durationSeconds ?? sampleVideo.durationSeconds));
 const canSubmit = computed(() => Boolean(selectedVideo.value) && instruction.value.trim().length > 0 && canCreateTask.value);
 
+function revokeObjectUrl(video: VideoFileInfo | null) {
+  if (video?.objectUrl) URL.revokeObjectURL(video.objectUrl);
+}
+
 async function handleFileSelected(file: File, metadata: LocalVideoMetadata) {
+  const previousVideo = selectedVideo.value;
   const localVideo = createVideoFromFile(file, metadata);
   selectedVideo.value = localVideo;
+  revokeObjectUrl(previousVideo);
   if (apiMode !== 'backend') return;
 
   try {
@@ -71,9 +77,11 @@ async function handleFileSelected(file: File, metadata: LocalVideoMetadata) {
       fileType: localVideo.fileType,
       durationReadable: localVideo.durationReadable,
       source: 'upload',
+      objectUrl: localVideo.objectUrl,
       createdAt: response.data.createdAt ?? localVideo.createdAt,
     };
   } catch (error) {
+    revokeObjectUrl(localVideo);
     selectedVideo.value = null;
     const message = error instanceof Error ? error.message : '视频上传到 Java 后端失败。';
     window.alert(message);
@@ -82,14 +90,17 @@ async function handleFileSelected(file: File, metadata: LocalVideoMetadata) {
 
 function useSampleVideo() {
   if (apiMode === 'backend') {
-    window.alert('backend mode 需要先上传视频文件，以便 Java 后端生成 videoId。');
+    window.alert('后端处理需要先上传视频文件。');
     return;
   }
+  revokeObjectUrl(selectedVideo.value);
   selectedVideo.value = {
     ...sampleVideo,
     createdAt: new Date().toISOString(),
   };
 }
+
+onBeforeUnmount(() => revokeObjectUrl(selectedVideo.value));
 
 function handleCreateTask() {
   if (!selectedVideo.value) return;
